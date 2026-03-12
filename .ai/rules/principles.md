@@ -1,34 +1,26 @@
 # Universal Principles
 
-If the user's question relates to a domain rule topic that wasn't auto-loaded by file path, read the relevant rule file before answering. Rule files cover: frontend, design, backend, database, security, testing, devops, laravel, compliance, incident, copywriting, git, ticketing, planning, research.
+## Project Stack
 
-## Stack Defaults
+**On first interaction with any project, check for `.claude/stack.md`. If it doesn't exist, run the `stack-detect` skill before doing anything else.** Never assume a stack.
 
-| Layer | Choice | Constraint |
-|---|---|---|
-| Runtime | Bun | Never Node.js for new projects. Yarn/npm OK for existing. |
-| HTTP | Hono | Cross-runtime. Never Express/Fastify/Elysia. |
-| Frontend | Astro 6 + Preact | Islands architecture |
-| Database | PostgreSQL 16 + Drizzle ORM | No raw SQL unless measured |
-| Styling | CSS Modules | No Tailwind, no styled-components |
-| State | Nanostores | Cross-island only |
-| Icons | @tabler/icons-preact | ONLY when user explicitly requests icons |
-| Charts | VisX via preact/compat | Validate light + dark mode |
-| Lint/Format | Oxlint + Prettier | |
-| Env vars | `env(c)` from hono/adapter | NEVER Bun.env or process.env |
+If the user's question relates to a domain rule that wasn't auto-loaded by file path, read the relevant rule file before answering.
+
+Preferences for NEW projects only (no existing codebase):
+- Runtime: Bun. Frontend: Astro 6 + Preact. Styling: CSS Modules. State: Nanostores.
+- Backend: Hono. Database: PostgreSQL 16 + Drizzle ORM. Lint: Oxlint + Prettier.
+
+**Always defer to detected stack in `.claude/stack.md` or project CLAUDE.md.**
 
 ## Hard Constraints
 
 - **No icons/emojis/decorative elements** unless user explicitly requests them. Text-only by default.
-- Astro 6 Zod: `import { z } from 'astro/zod'` (NOT 'zod')
-- TEXT over VARCHAR for unbounded data (btree 2704-byte limit)
-- Nanostores for cross-island state — never prop-drill >2 levels
-- `preact/compat` alias required for React-dependent libs
+- CSS custom properties for theming — never hardcode colors/spacing
 - OKLCH for color definitions — not HSL, not hex (hex for final output only)
-- Session cookies: HTTP-only, Secure, SameSite=Strict
-- Never expose stack traces, internal IDs, or DB details in responses
-- Generic auth errors: "Invalid email or password"
-- Never trust X-Forwarded-For — use cf-connecting-ip or X-Real-IP
+- Light + dark mode: design and validate both simultaneously
+- Mobile-first: `min-width` media queries
+- Only animate `transform` and `opacity` — never layout properties
+- `@media (prefers-reduced-motion: reduce)` on all non-essential animation
 
 ## Anti-AI-Slop
 

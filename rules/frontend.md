@@ -17,6 +17,7 @@ paths:
 
 - Astro pages in `.astro`, interactive components in `.tsx` (Preact)
 - Static pages: pre-rendered at build. Dynamic pages: server islands (SSR)
+- Astro 6 Zod: `import { z } from 'astro/zod'` (NOT from 'zod')
 - `preact/compat` only when a library requires React (e.g., VisX)
 
 ## CSS Modules

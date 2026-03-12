@@ -44,6 +44,7 @@ rules:
   - .ai/rules/incident.md
 
 skills:
+  - .ai/skills/stack-detect.md
   - .ai/skills/design-discovery.md
   - .ai/skills/micro-animations.md
   - .ai/skills/frontend-design.md
@@ -63,7 +64,8 @@ skills:
   - .ai/skills/mcp-builder.md
 
 tech:
-  runtime: "Bun (new projects). Yarn/npm for existing."
+  note: "Defaults for NEW projects only. Always defer to detected stack."
+  runtime: "Bun (new). Yarn/npm for existing."
   package_manager: "Bun (preferred). Yarn/npm when project uses them."
   linter: "Oxlint"
   formatter: "Prettier"

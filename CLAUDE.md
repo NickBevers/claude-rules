@@ -2,17 +2,29 @@
 
 Domain rules in `rules/` load by file path. Skills in `skills/` load by keyword. **If the user's question relates to a topic below but the rule wasn't auto-loaded, read the rule file before answering.**
 
+## Project Stack
+
+**On first interaction with any project, check for `.claude/stack.md`. If it doesn't exist, run the `stack-detect` skill before doing anything else.** This file defines what technologies the project actually uses — never assume a stack.
+
+Preferences for NEW projects (when no existing codebase):
+- Runtime: Bun. Package manager: Bun (yarn/npm OK for existing).
+- Frontend: Astro 6 + Preact. Styling: CSS Modules. State: Nanostores.
+- Backend: Hono. Database: PostgreSQL 16 + Drizzle ORM.
+- Lint: Oxlint + Prettier.
+
+These are defaults only. **Always defer to the detected stack in `.claude/stack.md` or project CLAUDE.md.**
+
 ## Rule Index
 
 | Topic | Rule File | Read when user asks about... |
 |---|---|---|
-| frontend | `rules/frontend.md` | Astro, Preact, islands, CSS Modules, hydration |
+| frontend | `rules/frontend.md` | components, pages, islands, hydration, client-side |
 | design | `rules/design.md` | spacing, typography, color, tokens, motion, states |
-| backend | `rules/backend.md` | Hono, API routes, middleware, response shapes |
-| database | `rules/database.md` | PostgreSQL, Drizzle, schema, migrations, queries |
+| backend | `rules/backend.md` | API routes, middleware, response shapes, server |
+| database | `rules/database.md` | schema, migrations, queries, ORM, data modeling |
 | security | `rules/security.md` | auth, sessions, encryption, headers, rate limiting |
-| testing | `rules/testing.md` | tests, Vitest, Playwright, bun:test, E2E |
-| devops | `rules/devops.md` | Docker, CI/CD, deployment, Coolify, backups |
+| testing | `rules/testing.md` | tests, E2E, unit tests, integration, accessibility |
+| devops | `rules/devops.md` | Docker, CI/CD, deployment, backups, infra |
 | laravel | `rules/laravel.md` | PHP, Laravel, Livewire, Blade, Eloquent |
 | compliance | `rules/compliance.md` | GDPR, cookies, privacy, licenses, accessibility legal |
 | incident | `rules/incident.md` | outage, postmortem, rollback, severity, status page |
@@ -22,31 +34,11 @@ Domain rules in `rules/` load by file path. Skills in `skills/` load by keyword.
 | planning | `rules/planning.md` | architecture decisions, ADRs, roadmap |
 | research | `rules/research.md` | library eval, API eval, spikes |
 
-## Stack Defaults
-
-Use unless project CLAUDE.md overrides.
-
-| Layer | Choice | Constraint |
-|---|---|---|
-| Runtime | Bun | New projects only. Yarn/npm OK for existing projects. Never Node.js runtime. |
-| Frontend | Astro 6 + Preact | Islands architecture |
-| Styling | CSS Modules (.module.css) | No Tailwind, no styled-components |
-| State | Nanostores (@nanostores/preact) | Cross-island only. Never React Context. |
-| Icons | @tabler/icons-preact | ONLY when user explicitly requests icons |
-| Charts | VisX via preact/compat | Validate light + dark mode |
-| Lint/Format | Oxlint + Prettier | |
-| HTTP | Hono | When backend needed. Never Express/Fastify/Elysia. |
-| Database | PostgreSQL 16 + Drizzle ORM | When DB needed. No raw SQL unless measured. |
-| Env vars | `env(c)` from hono/adapter | When using Hono. NEVER Bun.env or process.env. |
-
 ## Hard Constraints
 
 Things Claude gets wrong without explicit instruction:
 
-- **No icons/emojis/decorative elements** unless the user explicitly requests them. Never auto-add icons to buttons, nav items, headings, lists, or any UI element. Text-only by default.
-- Astro 6 Zod: `import { z } from 'astro/zod'` (NOT from 'zod')
-- Nanostores for cross-island state — never prop-drill >2 levels
-- `preact/compat` alias required for React-dependent libs (VisX, etc.)
+- **No icons/emojis/decorative elements** unless the user explicitly requests them. Text-only by default.
 - CSS custom properties for theming — never hardcode colors/spacing
 - OKLCH for color definitions — not HSL, not hex (hex for final output only)
 - Light + dark mode: design and validate both simultaneously
