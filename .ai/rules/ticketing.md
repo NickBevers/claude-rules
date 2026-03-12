@@ -1,8 +1,3 @@
----
-paths:
-  - "**/.claude/tickets/**"
-  - "**/tickets/**"
----
 
 # Ticketing Rules
 

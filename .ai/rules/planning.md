@@ -1,9 +1,3 @@
----
-paths:
-  - "**/.claude/research/**"
-  - "**/decisions*"
-  - "**/architecture*"
----
 
 # Planning Rules
 

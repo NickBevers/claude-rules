@@ -1,13 +1,3 @@
----
-paths:
-  - "**/*.test.*"
-  - "**/*.spec.*"
-  - "**/e2e/**"
-  - "**/tests/**"
-  - "**/test/**"
-  - "**/vitest*"
-  - "**/playwright*"
----
 
 # Testing Rules
 

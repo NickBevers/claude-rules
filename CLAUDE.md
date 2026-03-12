@@ -1,66 +1,47 @@
-# Global Claude Rules
+# Global Rules
 
-These rules apply to ALL projects. They define my workflow preferences, coding standards, and expectations for AI-assisted development.
+Domain rules in `rules/` load conditionally by file path. Skills in `skills/` load on demand.
 
-## Rule Files
+## Stack Defaults
 
-Rules are organized by domain. Each file contains mandatory instructions for that area:
+Use unless project CLAUDE.md overrides.
 
-- [Frontend Development](./rules/frontend-development.md) — Component architecture, styling, state management, accessibility
-- [Backend Development](./rules/backend-development.md) — API design, database patterns, error handling, security
-- [Design](./rules/design.md) — UI/UX principles, design systems, visual standards
-- [Project Management](./rules/project-management.md) — Workflow, prioritization, communication
-- [Ticketing](./rules/ticketing.md) — Ticket structure, acceptance criteria, dependency tracking
-- [Planning](./rules/planning.md) — Architecture decisions, research, technical planning
-- [Research](./rules/research.md) — Evaluating tools, libraries, APIs, and architectural options
-- [Testing](./rules/testing.md) — Test strategy, coverage expectations, test patterns
-- [Security](./rules/security.md) — Authentication, encryption, OWASP, compliance
-- [DevOps](./rules/devops.md) — Deployment, Docker, CI/CD, infrastructure
-- [Git](./rules/git.md) — Commit conventions, branching, PR workflow
+| Layer | Choice | Constraint |
+|---|---|---|
+| Runtime | Bun | Never Node.js |
+| HTTP | Hono | Cross-runtime. Never Express/Fastify/Elysia. |
+| Frontend | Astro 6 + Preact | Islands architecture |
+| Database | PostgreSQL 16 + Drizzle ORM | No raw SQL unless measured perf need |
+| Styling | CSS Modules (.module.css) | No Tailwind, no styled-components |
+| State | Nanostores (@nanostores/preact) | Cross-island only. Never React Context. |
+| Icons | @tabler/icons-preact | Individual imports only |
+| Charts | VisX via preact/compat | Validate light + dark mode |
+| Lint/Format | Oxlint + Prettier | |
+| Env vars | `env(c)` from hono/adapter | NEVER Bun.env or process.env |
+| Encryption | crypto.subtle (Web Crypto) | Cross-runtime |
+| Passwords | Bun.password + Argon2id | Native on Bun |
 
-### Skills (Paired Subagent Workflows)
+## Hard Constraints
 
-These skills use paired subagents that independently generate ideas, then spar/critique each other to converge on a superior result. The user always has final say.
+Things Claude gets wrong without explicit instruction:
 
-- [Design Discovery](./rules/skill-design-discovery.md) — Font selection, color palettes, visual identity. Two agents explore bold vs. refined directions, cross-critique, and present 2-3 polished options.
-- [Micro Animations](./rules/skill-micro-animations.md) — Hover effects, entrance/exit transitions, interactive feedback. Two agents explore expressive vs. subtle motion, cross-critique, and produce a complete animation system.
+- Astro 6 Zod: `import { z } from 'astro/zod'` (NOT from 'zod')
+- TEXT over VARCHAR for unbounded data (PostgreSQL btree 2704-byte limit)
+- Nanostores for cross-island state — never prop-drill >2 levels
+- `preact/compat` alias required for React-dependent libs (VisX, etc.)
+- Session cookies: HTTP-only, Secure, SameSite=Strict
+- Never expose stack traces, internal IDs, or DB details in API responses
+- Generic auth errors only: "Invalid email or password"
+- Never trust X-Forwarded-For — use cf-connecting-ip or X-Real-IP
 
-**How the sparring pattern works:**
-1. Gather context from the user (or project)
-2. Spawn **Agent A** and **Agent B** in parallel with the same brief but different creative lenses
-3. Spawn **Agent C** and **Agent D** in parallel — each critiques the other's proposal using the opposing agent's strengths
-4. Synthesize into 2-3 options and present to the user
-5. Iterate based on feedback (re-spar if major changes needed)
-6. Output production-ready code (CSS custom properties, CSS Modules, etc.)
+## Workflow
 
-## Universal Principles
+- Only change what was asked. No drive-by refactors.
+- Read existing code before modifying.
+- If unsure, ask. Do not assume.
+- Git branches: `feature/TICKET-ID-short-desc`, `fix/short-desc`
+- Colocate tests with source: `foo.ts` + `foo.test.ts`
 
-1. **Simplicity over cleverness** — Write the simplest code that works. No premature abstractions, no over-engineering.
-2. **Explicit over implicit** — Favor clear, readable code. Name things well. Avoid magic.
-3. **Fix root causes** — Never paper over bugs with workarounds. Investigate and fix the actual problem.
-4. **Minimal changes** — Only change what's needed. Don't refactor adjacent code, add unsolicited comments, or "improve" things that weren't asked about.
-5. **Security by default** — Never introduce OWASP top 10 vulnerabilities. Validate at system boundaries.
-6. **Read before writing** — Always read existing code before modifying it. Understand context first.
-7. **No guessing** — If unsure about a requirement, ask. Don't assume.
+## Paired Subagent Sparring
 
-## Tech Preferences
-
-- **Runtime:** Bun (preferred over Node.js)
-- **Package manager:** Bun
-- **Linting:** Oxlint (preferred over ESLint for speed)
-- **Formatting:** Prettier
-- **Backend frameworks:** Hono (preferred for cross-runtime portability)
-- **Frontend frameworks:** Astro + Preact (islands architecture preferred)
-- **Database:** PostgreSQL + Drizzle ORM
-- **Styling:** CSS Modules (preferred over Tailwind, styled-components, etc.)
-- **State management:** Nanostores for cross-island state
-- **Icons:** Tabler Icons
-- **Charts:** VisX (SVG-based, D3 foundation)
-
-## Communication Style
-
-- Be concise. Lead with answers, not reasoning.
-- No emojis unless explicitly requested.
-- No time estimates or predictions.
-- Reference code locations with `file_path:line_number` format.
-- When blocked, suggest alternatives instead of retrying the same approach.
+When a skill calls for sparring, use the Agent tool to spawn parallel workers with opposing creative lenses. Always present results to the user for feedback before finalizing.

@@ -1,14 +1,3 @@
----
-paths:
-  - "**/auth/**"
-  - "**/session*"
-  - "**/middleware*"
-  - "**/*guard*"
-  - "**/*crypt*"
-  - "**/*password*"
-  - "**/*permission*"
-  - "**/*role*"
----
 
 # Security Rules
 

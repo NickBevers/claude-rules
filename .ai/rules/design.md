@@ -1,11 +1,3 @@
----
-paths:
-  - "**/*.module.css"
-  - "**/*.css"
-  - "**/tokens*"
-  - "**/theme*"
-  - "**/design*"
----
 
 # Design Rules
 

@@ -1,11 +1,3 @@
----
-paths:
-  - "**/Dockerfile*"
-  - "**/docker-compose*"
-  - "**/.github/**"
-  - "**/deploy*"
-  - "**/coolify*"
----
 
 # DevOps Rules
 

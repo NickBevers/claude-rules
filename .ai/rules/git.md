@@ -1,9 +1,3 @@
----
-paths:
-  - "**/.gitignore"
-  - "**/.gitattributes"
-  - "**/.github/**"
----
 
 # Git Rules
 

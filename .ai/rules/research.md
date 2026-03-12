@@ -1,9 +1,3 @@
----
-paths:
-  - "**/.claude/research/**"
-  - "**/research/**"
-  - "**/spike*"
----
 
 # Research Rules
 
