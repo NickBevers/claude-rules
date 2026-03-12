@@ -1,0 +1,32 @@
+{
+  "name": "claude-rules",
+  "version": "1.0.0",
+  "description": "AI agent configuration for Claude Code, Cursor, Windsurf, Copilot, and Aider",
+  "author": "NickBevers",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NickBevers/claude-rules.git"
+  },
+  "bin": {
+    "claude-rules": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    ".ai/",
+    "adapters/",
+    "scripts/",
+    "project-templates/",
+    "CLAUDE.md"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai-rules",
+    "cursor",
+    "windsurf",
+    "copilot",
+    "aider"
+  ]
+}
