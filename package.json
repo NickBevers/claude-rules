@@ -1,5 +1,5 @@
 {
-  "name": "claude-rules",
+  "name": "@nickbevers/claude-rules",
   "version": "1.0.0",
   "description": "AI agent configuration for Claude Code, Cursor, Windsurf, Copilot, and Aider",
   "author": "NickBevers",
