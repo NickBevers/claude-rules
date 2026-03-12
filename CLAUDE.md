@@ -1,6 +1,26 @@
 # Global Rules
 
-Domain rules in `rules/` load conditionally by file path. Skills in `skills/` load on demand.
+Domain rules in `rules/` load by file path. Skills in `skills/` load by keyword. **If the user's question relates to a topic below but the rule wasn't auto-loaded, read the rule file before answering.**
+
+## Rule Index
+
+| Topic | Rule File | Read when user asks about... |
+|---|---|---|
+| frontend | `rules/frontend.md` | Astro, Preact, islands, CSS Modules, hydration |
+| design | `rules/design.md` | spacing, typography, color, tokens, motion, states |
+| backend | `rules/backend.md` | Hono, API routes, middleware, response shapes |
+| database | `rules/database.md` | PostgreSQL, Drizzle, schema, migrations, queries |
+| security | `rules/security.md` | auth, sessions, encryption, headers, rate limiting |
+| testing | `rules/testing.md` | tests, Vitest, Playwright, bun:test, E2E |
+| devops | `rules/devops.md` | Docker, CI/CD, deployment, Coolify, backups |
+| laravel | `rules/laravel.md` | PHP, Laravel, Livewire, Blade, Eloquent |
+| compliance | `rules/compliance.md` | GDPR, cookies, privacy, licenses, accessibility legal |
+| incident | `rules/incident.md` | outage, postmortem, rollback, severity, status page |
+| copywriting | `rules/copywriting.md` | labels, error messages, empty states, microcopy |
+| git | `rules/git.md` | branches, commits, gitignore, push safety |
+| ticketing | `rules/ticketing.md` | tickets, acceptance criteria, phases |
+| planning | `rules/planning.md` | architecture decisions, ADRs, roadmap |
+| research | `rules/research.md` | library eval, API eval, spikes |
 
 ## Stack Defaults
 

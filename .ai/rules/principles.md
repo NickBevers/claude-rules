@@ -1,5 +1,7 @@
 # Universal Principles
 
+If the user's question relates to a domain rule topic that wasn't auto-loaded by file path, read the relevant rule file before answering. Rule files cover: frontend, design, backend, database, security, testing, devops, laravel, compliance, incident, copywriting, git, ticketing, planning, research.
+
 ## Stack Defaults
 
 | Layer | Choice | Constraint |
