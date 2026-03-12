@@ -10,6 +10,7 @@
 - Business logic, data transformations, API handlers (happy + error)
 - Auth/authz flows, input validation edge cases
 - Critical user journeys (E2E)
+- Accessibility: run axe-core checks in component tests
 
 ## What NOT to Over-Test
 
@@ -21,3 +22,11 @@
 - Real test database for integration (not mocks). Transaction-based isolation.
 - Testing Library: query by role/label, not implementation details
 - `data-testid` for E2E selectors. Keep E2E suite focused on high-value flows.
+
+## Accessibility Checklist (E2E)
+
+- All images have alt text (decorative = `alt=""`)
+- All interactive elements keyboard-reachable
+- Color contrast meets WCAG AA
+- No focus traps. Logical tab order.
+- Screen reader landmarks: `main`, `nav`, `header`, `footer`

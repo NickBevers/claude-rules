@@ -6,7 +6,7 @@ allowed-tools: Agent, Read, Glob, Grep, Write, Edit
 
 # Micro Animations — Motion Design
 
-Use paired subagent sparring to balance expressiveness vs. subtlety, cross-critique, and produce production CSS.
+Paired subagent sparring: expressive vs. precise, cross-critique, produce production CSS.
 
 ## Step 1: Gather Context
 
@@ -23,13 +23,15 @@ Ask the user (skip what's already known):
 **Agent B — "Precise"**: Micro-translations (1-3px), opacity shifts, color transitions. Inspiration: Apple HIG, IBM Carbon, Radix.
 
 Both MUST:
-- Write real, working CSS (CSS Modules or custom properties)
-- Custom `cubic-bezier()` easing — never just `ease` or `linear`
-- All transitions under 400ms (most under 200ms)
+- Write real CSS (CSS Modules or custom properties)
+- Custom `cubic-bezier()` easing — never `ease` or `linear`
+- Duration rule: 100ms micro, 200-300ms standard, 500ms complex
 - `@media (prefers-reduced-motion: reduce)` on everything
-- Only `transform` and `opacity` (GPU-composited). Never animate `width`/`height`/`margin`/`padding`/`top`/`left`.
-- Cover: hover, focus, active, enter, exit states
+- Only `transform` and `opacity`. Never `width`/`height`/`margin`/`padding`/`top`/`left`.
+- Use `grid-template-rows: 0fr → 1fr` for height animations (CSS-only)
+- Cover: hover, focus-visible, active, enter, exit states
 - Note CSS-only vs. JS-required animations
+- **No decorative icons or emojis in animated elements unless user requested**
 
 ## Step 3: Cross-Critique
 
@@ -44,35 +46,41 @@ Each with: personality description, full CSS per component, easing values, timin
 
 ## Step 6: Output Animation System
 
-CSS custom properties:
 ```css
 :root {
-  --duration-instant: 100ms;
+  --duration-micro: 100ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
+  --duration-complex: 500ms;
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --hover-lift: translateY(-2px);
   --press-down: translateY(1px) scale(0.98);
 }
 @media (prefers-reduced-motion: reduce) {
-  :root { --duration-instant: 0ms; --duration-fast: 0ms; --duration-normal: 0ms; --duration-slow: 0ms; }
+  :root {
+    --duration-micro: 0ms; --duration-fast: 0ms;
+    --duration-normal: 0ms; --duration-slow: 0ms;
+    --duration-complex: 0ms;
+  }
 }
 ```
 
-## Pattern Library Reference
+## Pattern Library
 
-**Hover**: lift (translateY + shadow), glow (box-shadow spread), fill (pseudo-element slide), scale (1.02 cards), underline reveal (width 0->100%)
-**Enter**: fade-up (opacity+translateY), scale-in (0.95->1), stagger (50-100ms per child)
+**Hover**: lift (translateY + shadow), glow (box-shadow), fill (pseudo-element), scale (1.02), underline reveal (scaleX 0→1)
+**Enter**: fade-up (opacity+translateY), scale-in (0.95→1), stagger (50-100ms/child)
 **Exit**: fade-down (faster than enter), scale-out, slide-out
-**Feedback**: button press (scale 0.97), input focus (ring shadow), error shake (3 cycles, 300ms)
-**Loading**: skeleton shimmer, SVG spinner (not border-hack), checkmark draw on success
+**Feedback**: press (scale 0.97), focus (ring shadow), error shake (3 cycles, 300ms)
+**Loading**: skeleton shimmer, SVG spinner (not border-hack), checkmark draw
+**Height**: `grid-template-rows: 0fr → 1fr` (no JS, GPU-friendly)
 
 ## Anti-Patterns
 
 - `transition: all` — specify properties explicitly
-- `linear` easing for UI (robotic) — reserve for progress bars
-- Hover delay (response must be instant; delay on hover-out is OK)
+- `linear` easing for UI — reserve for progress bars
+- Hover delay (instant response; delay on hover-out OK)
 - Blocking interaction during animation
-- Forgetting `prefers-reduced-motion`
+- Missing `prefers-reduced-motion`
+- Bounce/elastic easing (feels cheap — use subtle spring)

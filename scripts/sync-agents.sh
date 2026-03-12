@@ -174,7 +174,8 @@ sync_claude() {
   - "**/.github/**"
   - "**/*.yml"
   - "**/*.yaml"
-  - "**/deploy*"'
+  - "**/deploy*"
+  - "**/coolify*"'
     log_info "  -> rules/devops.md (path-scoped)"
   fi
 
@@ -224,13 +225,66 @@ sync_claude() {
     log_info "  -> rules/research.md (path-scoped)"
   fi
 
-  # Skills go in skills/ directory (on-demand, zero cost until triggered)
+  # Laravel
+  if [[ -f "$AI_DIR/rules/laravel.md" ]]; then
+    generate_scoped_rule "$AI_DIR/rules/laravel.md" "$rules_out_dir/laravel.md" \
+      '  - "**/*.php"
+  - "**/livewire/**"
+  - "**/resources/views/**"
+  - "**/app/**"
+  - "**/routes/**"
+  - "**/database/migrations/**"
+  - "**/composer.json"
+  - "**/*.blade.php"'
+    log_info "  -> rules/laravel.md (path-scoped)"
+  fi
+
+  # Compliance
+  if [[ -f "$AI_DIR/rules/compliance.md" ]]; then
+    generate_scoped_rule "$AI_DIR/rules/compliance.md" "$rules_out_dir/compliance.md" \
+      '  - "**/privacy*"
+  - "**/cookie*"
+  - "**/consent*"
+  - "**/gdpr*"
+  - "**/legal*"
+  - "**/terms*"
+  - "**/policy*"'
+    log_info "  -> rules/compliance.md (path-scoped)"
+  fi
+
+  # Incident
+  if [[ -f "$AI_DIR/rules/incident.md" ]]; then
+    generate_scoped_rule "$AI_DIR/rules/incident.md" "$rules_out_dir/incident.md" \
+      '  - "**/incident*"
+  - "**/postmortem*"
+  - "**/runbook*"
+  - "**/status*"
+  - "**/ops/**"
+  - "**/monitoring*"'
+    log_info "  -> rules/incident.md (path-scoped)"
+  fi
+
+  # Copywriting
+  if [[ -f "$AI_DIR/rules/copywriting.md" ]]; then
+    generate_scoped_rule "$AI_DIR/rules/copywriting.md" "$rules_out_dir/copywriting.md" \
+      '  - "**/components/**"
+  - "**/pages/**"
+  - "**/layouts/**"
+  - "**/content/**"
+  - "**/copy*"
+  - "**/text*"
+  - "**/*.astro"'
+    log_info "  -> rules/copywriting.md (path-scoped)"
+  fi
+
+  # Skills go in skills/{name}/SKILL.md (Claude Code format, on-demand)
   mkdir -p "$skills_out_dir"
   for skill_file in "$AI_DIR"/skills/*.md; do
-    local basename=$(basename "$skill_file")
-    [[ "$basename" == "SKILL-FORMAT.md" ]] && continue
-    cp "$skill_file" "$skills_out_dir/$basename"
-    log_info "  -> skills/$basename (on-demand)"
+    local basename=$(basename "$skill_file" .md)
+    [[ "$basename" == "SKILL-FORMAT" ]] && continue
+    mkdir -p "$skills_out_dir/$basename"
+    cp "$skill_file" "$skills_out_dir/$basename/SKILL.md"
+    log_info "  -> skills/$basename/SKILL.md (on-demand)"
   done
 
   # Clean up old non-scoped rule files that the sync script used to generate

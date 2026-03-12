@@ -12,7 +12,7 @@
 - **Database:** PostgreSQL 16 + Drizzle ORM
 - **Styling:** CSS Modules
 - **State:** Nanostores (`@nanostores/preact`)
-- **Icons:** Tabler Icons (`@tabler/icons-preact`)
+- **Icons:** Tabler Icons (`@tabler/icons-preact`) — only when explicitly requested
 - **Charts:** VisX (via `preact/compat`)
 
 ## Architecture

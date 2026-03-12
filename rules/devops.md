@@ -3,6 +3,8 @@ paths:
   - "**/Dockerfile*"
   - "**/docker-compose*"
   - "**/.github/**"
+  - "**/*.yml"
+  - "**/*.yaml"
   - "**/deploy*"
   - "**/coolify*"
 ---
