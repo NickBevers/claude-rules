@@ -8,20 +8,21 @@
 - `crypto.subtle` for encryption — cross-runtime
 - Abstract runtime-specific features behind interfaces
 
-## Database
-
-- Drizzle ORM — no raw SQL unless perf-critical and measured
-- TEXT (not VARCHAR) for unbounded data + `md5()` hash-based unique indexes
-- Soft delete default: `is_active` + `deleted_at` columns on user-facing entities
-- All queries filter `WHERE is_active = true`
-
 ## API Design
 
 - Response shapes: `{ data }` success, `{ error, message }` failure
 - Pagination: cursor-based for large sets, offset for admin/small
 - Zod validation at handler level for all input
-- Never expose internals in errors (stack traces, IDs, DB details)
+- Never expose stack traces, internal IDs, or DB details in errors
 - Generic auth errors: "Invalid email or password"
+
+## Auth (when applicable)
+
+- Argon2id via `Bun.password` (native, no npm)
+- Session cookies: HTTP-only, Secure, SameSite=Strict
+- Rotate session token on: login, email verification, password change
+- Never trust X-Forwarded-For — use cf-connecting-ip or X-Real-IP
+- Same-origin deployments: NO CORS middleware, NO CSRF middleware
 
 ## Middleware
 
@@ -29,7 +30,7 @@
 - Security headers: X-Content-Type-Options, X-Frame-Options, HSTS, CSP, Referrer-Policy
 - Request ID per request for tracing
 
-## Jobs
+## Jobs (when applicable)
 
 - PostgreSQL-based queues preferred (pgboss) — BullMQ has Bun segfault issues
 - Idempotent handlers, circuit breakers for external APIs

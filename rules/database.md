@@ -12,10 +12,11 @@ paths:
 
 ## Core
 
-- PostgreSQL 16 + Drizzle ORM. No raw SQL unless perf-critical and measured.
+- Default: PostgreSQL 16 + Drizzle ORM. Project CLAUDE.md may specify another DB.
 - Define full schema upfront, even if tables populate later.
+- No raw SQL unless perf-critical and measured.
 
-## TEXT + md5() Hash Indexes
+## TEXT + md5() Hash Indexes (PostgreSQL)
 
 - NEVER use VARCHAR for unbounded data (queries, URLs, user input)
 - TEXT + `md5()` hash column for uniqueness:
@@ -30,9 +31,8 @@ paths:
 - ALL queries MUST filter `WHERE is_active = true` by default
 - Background job handles actual deletion
 
-## Schema Conventions
+## Conventions
 
 - Normalize by default — denormalize only with measured justification
-- Separate tables per dimension/concern (don't overload)
 - Include `created_at`, `updated_at` on all tables
-- Subscription/billing columns on accounts table, not users
+- Subscription/billing columns on accounts table, not users (when applicable)
