@@ -18,6 +18,21 @@ Rules are organized by domain. Each file contains mandatory instructions for tha
 - [DevOps](./rules/devops.md) — Deployment, Docker, CI/CD, infrastructure
 - [Git](./rules/git.md) — Commit conventions, branching, PR workflow
 
+### Skills (Paired Subagent Workflows)
+
+These skills use paired subagents that independently generate ideas, then spar/critique each other to converge on a superior result. The user always has final say.
+
+- [Design Discovery](./rules/skill-design-discovery.md) — Font selection, color palettes, visual identity. Two agents explore bold vs. refined directions, cross-critique, and present 2-3 polished options.
+- [Micro Animations](./rules/skill-micro-animations.md) — Hover effects, entrance/exit transitions, interactive feedback. Two agents explore expressive vs. subtle motion, cross-critique, and produce a complete animation system.
+
+**How the sparring pattern works:**
+1. Gather context from the user (or project)
+2. Spawn **Agent A** and **Agent B** in parallel with the same brief but different creative lenses
+3. Spawn **Agent C** and **Agent D** in parallel — each critiques the other's proposal using the opposing agent's strengths
+4. Synthesize into 2-3 options and present to the user
+5. Iterate based on feedback (re-spar if major changes needed)
+6. Output production-ready code (CSS custom properties, CSS Modules, etc.)
+
 ## Universal Principles
 
 1. **Simplicity over cleverness** — Write the simplest code that works. No premature abstractions, no over-engineering.

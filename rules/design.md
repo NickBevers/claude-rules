@@ -63,3 +63,9 @@
 - Define design tokens (colors, spacing, typography, shadows, radii) as CSS custom properties
 - Single source of truth for all visual values
 - Token names describe purpose, not appearance (`--color-primary`, not `--blue-500`)
+
+## Related Skills
+
+For in-depth creative work, use the paired subagent skills:
+- **[Design Discovery](./skill-design-discovery.md)** — Use when choosing fonts and colors for a project. Spawns paired agents that spar to avoid generic defaults.
+- **[Micro Animations](./skill-micro-animations.md)** — Use when adding hover effects, transitions, and interactive polish. Spawns paired agents that balance expressiveness vs. restraint.
