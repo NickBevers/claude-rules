@@ -3,11 +3,10 @@
 /**
  * claude-rules CLI
  *
- * Usage:
+ * Usage (bunx | npx | pnpm dlx | yarn dlx):
  *   bunx @nickbevers/claude-rules init [agents...]
- *   npx @nickbevers/claude-rules init [agents...]
  *   claude-rules init                  # Claude only (default)
- *   claude-rules init claude cursor    # Multiple agents
+ *   claude-rules init claude windsurf  # Multiple agents
  *   claude-rules init all              # All agents
  *   claude-rules setup                 # Symlink into ~/.claude/ (global)
  *   claude-rules convert <agent>       # Generate config for another agent
@@ -19,10 +18,13 @@ import { join, dirname, basename, resolve } from "node:path";
 import { homedir } from "node:os";
 
 const PKG_ROOT = resolve(dirname(import.meta.url.replace("file://", "")), "..");
-const RULES_DIR = join(PKG_ROOT, "rules");
-const SKILLS_DIR = join(PKG_ROOT, "skills");
-const CLAUDE_MD = join(PKG_ROOT, "CLAUDE.md");
 const VERSION = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")).version;
+
+/** Resolve a path locally first, fall back to package */
+function resolveSource(name) {
+  const local = resolve(name);
+  return existsSync(local) ? local : join(PKG_ROOT, name);
+}
 
 const RESET = "\x1b[0m";
 const GREEN = "\x1b[32m";
@@ -60,9 +62,10 @@ function stripFrontmatter(content) {
 
 /** Read all rule files, strip frontmatter, return concatenated content */
 function collectRules() {
+  const rulesDir = resolveSource("rules");
   const parts = [];
-  for (const file of readdirSync(RULES_DIR).filter(f => f.endsWith(".md")).sort()) {
-    const content = readFileSync(join(RULES_DIR, file), "utf8");
+  for (const file of readdirSync(rulesDir).filter(f => f.endsWith(".md")).sort()) {
+    const content = readFileSync(join(rulesDir, file), "utf8");
     parts.push(stripFrontmatter(content));
   }
   return parts.join("\n---\n\n");
@@ -70,9 +73,10 @@ function collectRules() {
 
 /** Read all skill files, strip frontmatter, return concatenated content */
 function collectSkills() {
+  const skillsDir = resolveSource("skills");
   const parts = [];
-  for (const dir of readdirSync(SKILLS_DIR, { withFileTypes: true }).filter(d => d.isDirectory())) {
-    const skillFile = join(SKILLS_DIR, dir.name, "SKILL.md");
+  for (const dir of readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory())) {
+    const skillFile = join(skillsDir, dir.name, "SKILL.md");
     if (existsSync(skillFile)) {
       const content = readFileSync(skillFile, "utf8");
       parts.push(stripFrontmatter(content));
@@ -83,7 +87,7 @@ function collectSkills() {
 
 /** Read CLAUDE.md content (already has no frontmatter) */
 function collectPrinciples() {
-  return readFileSync(CLAUDE_MD, "utf8");
+  return readFileSync(resolveSource("CLAUDE.md"), "utf8");
 }
 
 // ---------------------------------------------------------------------------
@@ -180,10 +184,14 @@ function cmdInit(targetDir, agents) {
 function syncClaude(projectDir) {
   log("Copying Claude Code config...");
 
+  const pkgRules = join(PKG_ROOT, "rules");
+  const pkgSkills = join(PKG_ROOT, "skills");
+  const pkgClaude = join(PKG_ROOT, "CLAUDE.md");
+
   // Copy CLAUDE.md
   const claudeDest = join(projectDir, "CLAUDE.md");
   if (!existsSync(claudeDest)) {
-    copyFileSync(CLAUDE_MD, claudeDest);
+    copyFileSync(pkgClaude, claudeDest);
     log("  -> CLAUDE.md");
   } else {
     warn("  -> CLAUDE.md (exists, skipped)");
@@ -193,10 +201,10 @@ function syncClaude(projectDir) {
   const rulesDest = join(projectDir, "rules");
   mkdirSync(rulesDest, { recursive: true });
   let ruleCount = 0;
-  for (const file of readdirSync(RULES_DIR).filter(f => f.endsWith(".md"))) {
+  for (const file of readdirSync(pkgRules).filter(f => f.endsWith(".md"))) {
     const dest = join(rulesDest, file);
     if (!existsSync(dest)) {
-      copyFileSync(join(RULES_DIR, file), dest);
+      copyFileSync(join(pkgRules, file), dest);
       ruleCount++;
     }
   }
@@ -205,9 +213,9 @@ function syncClaude(projectDir) {
   // Copy skills/
   const skillsDest = join(projectDir, "skills");
   let skillCount = 0;
-  for (const dir of readdirSync(SKILLS_DIR, { withFileTypes: true }).filter(d => d.isDirectory())) {
+  for (const dir of readdirSync(pkgSkills, { withFileTypes: true }).filter(d => d.isDirectory())) {
     const destDir = join(skillsDest, dir.name);
-    const skillFile = join(SKILLS_DIR, dir.name, "SKILL.md");
+    const skillFile = join(pkgSkills, dir.name, "SKILL.md");
     if (existsSync(skillFile) && !existsSync(join(destDir, "SKILL.md"))) {
       mkdirSync(destDir, { recursive: true });
       copyFileSync(skillFile, join(destDir, "SKILL.md"));
@@ -312,9 +320,9 @@ function cmdSetup() {
   log("Setting up global symlinks...");
 
   const links = [
-    [CLAUDE_MD, join(claudeDir, "CLAUDE.md")],
-    [RULES_DIR, join(claudeDir, "rules")],
-    [SKILLS_DIR, join(claudeDir, "skills")],
+    [join(PKG_ROOT, "CLAUDE.md"), join(claudeDir, "CLAUDE.md")],
+    [join(PKG_ROOT, "rules"), join(claudeDir, "rules")],
+    [join(PKG_ROOT, "skills"), join(claudeDir, "skills")],
   ];
 
   for (const [src, dest] of links) {
@@ -381,24 +389,27 @@ ${BOLD}Usage:${RESET}
 
 ${BOLD}Agents:${RESET} claude, cursor, windsurf, copilot, aider, all
 
+${BOLD}Run with any package manager:${RESET}
+  bunx @nickbevers/claude-rules ${DIM}<command>${RESET}
+  npx @nickbevers/claude-rules ${DIM}<command>${RESET}
+  pnpm dlx @nickbevers/claude-rules ${DIM}<command>${RESET}
+  yarn dlx @nickbevers/claude-rules ${DIM}<command>${RESET}
+
 ${BOLD}Examples:${RESET}
   ${DIM}# Initialize current project with Claude Code config${RESET}
-  claude-rules init
-
-  ${DIM}# Initialize with Claude + Cursor${RESET}
-  claude-rules init claude cursor
-
-  ${DIM}# Quick setup via bunx (no install)${RESET}
   bunx @nickbevers/claude-rules init
 
-  ${DIM}# Install globally into ~/.claude/${RESET}
-  claude-rules setup
+  ${DIM}# Initialize with Claude + Windsurf${RESET}
+  bunx @nickbevers/claude-rules init claude windsurf
 
-  ${DIM}# Generate Cursor rules from existing Claude rules${RESET}
-  claude-rules convert cursor
+  ${DIM}# Install globally into ~/.claude/${RESET}
+  bunx @nickbevers/claude-rules setup
+
+  ${DIM}# Generate Windsurf rules from existing Claude rules${RESET}
+  bunx @nickbevers/claude-rules convert windsurf
 
   ${DIM}# Generate all agent configs${RESET}
-  claude-rules convert all
+  bunx @nickbevers/claude-rules convert all
 `);
   process.exit(0);
 }

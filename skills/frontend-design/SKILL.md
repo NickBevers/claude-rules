@@ -6,7 +6,7 @@ allowed-tools: Agent, Read, Glob, Grep, Write, Edit, WebSearch, WebFetch
 
 # Frontend Design — Distinctive UI Creation
 
-Build production-grade interfaces that pass the AI slop test. Text-only by default — no icons unless user requests them.
+Build production-grade interfaces that pass the AI slop test. Use Tabler Icons by default unless user specifies a different set.
 
 ## Step 1: Gather Context
 
@@ -56,7 +56,7 @@ Each section should have a distinct visual rhythm — vary layout patterns, don'
 
 **Content**: Placeholders should feel real — use realistic copy lengths, not "Lorem ipsum". Show empty states, loading states, error states.
 
-**No icons** unless user explicitly requested them. Text-only buttons, text-only navigation, text-only lists.
+**Icons**: Tabler Icons by default. Use icons where they aid comprehension (navigation, actions, status). No purely decorative icons. User can override with a different icon set.
 
 ## Step 4: Code Standards
 
@@ -75,7 +75,7 @@ Each section should have a distinct visual rhythm — vary layout patterns, don'
 - [ ] Typography has clear hierarchy and is not a default font?
 - [ ] Colors are tinted, not pure gray/black/white?
 - [ ] Dark mode is a separate design, not inverted?
-- [ ] No icons were added without explicit user request?
+- [ ] Icons are functional (aid comprehension), not purely decorative?
 - [ ] Layout has intentional asymmetry or structure, not generic cards?
 - [ ] All interactive elements have visible focus states?
 - [ ] Mobile layout works (min-width queries)?

@@ -38,7 +38,7 @@ These are defaults only. **Always defer to the detected stack in `.claude/stack.
 
 Things Claude gets wrong without explicit instruction:
 
-- **No icons/emojis/decorative elements** unless the user explicitly requests them. Text-only by default.
+- **Icons: Tabler Icons by default** (`@tabler/icons-preact`), individual imports only. User can override with a different icon set. No emojis in UI.
 - CSS custom properties for theming — never hardcode colors/spacing
 - OKLCH for color definitions — not HSL, not hex (hex for final output only)
 - Light + dark mode: design and validate both simultaneously

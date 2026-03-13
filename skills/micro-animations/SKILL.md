@@ -31,7 +31,7 @@ Both MUST:
 - Use `grid-template-rows: 0fr → 1fr` for height animations (CSS-only)
 - Cover: hover, focus-visible, active, enter, exit states
 - Note CSS-only vs. JS-required animations
-- **No decorative icons or emojis in animated elements unless user requested**
+- Icons in animated elements: Tabler Icons by default, no emojis
 
 ## Step 3: Cross-Critique
 

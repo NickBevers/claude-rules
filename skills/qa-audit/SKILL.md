@@ -49,7 +49,7 @@ Launch **parallel subagents** based on scope:
 - Layout: works at mobile/tablet/desktop, no horizontal scroll
 - Content: error messages explain what/why/how-to-fix, no "Error occurred"
 - Dark mode: tested (not just inverted), readable contrast
-- No auto-added icons/emojis — text-only unless user designed them in
+- Icons: verify they use Tabler (or project-specified set), no emojis in UI
 
 ## Step 3: Evidence Collection
 
@@ -85,4 +85,4 @@ Rules:
 - Default verdict is NEEDS WORK. Only PASS with overwhelming evidence.
 - Group findings by category (accessibility, performance, security, UX).
 - Prioritize: critical → important → suggestion.
-- Never suggest adding icons or decorative elements.
+- Icons should be functional (Tabler by default), not purely decorative. No emojis.

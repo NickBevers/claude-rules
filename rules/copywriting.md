@@ -37,6 +37,6 @@ Formula: What happened + Why + How to fix
 
 ## No Decorative Text
 
-- No emojis in UI copy unless user explicitly requests them
-- No icon+text patterns unless user explicitly requests icons
+- No emojis in UI copy
+- Icons (Tabler by default) are fine where they aid comprehension — no purely decorative icons
 - Use realistic content lengths in prototypes — not "Lorem ipsum"

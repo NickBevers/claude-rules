@@ -79,7 +79,7 @@ Show recommendations ranked by expected impact:
 
 ## Rules
 
-- No emojis or icons unless user requests them
+- No emojis. Icons (Tabler) are fine where they support the nudge pattern
 - Real data for social proof (or clearly mark as placeholder)
 - Every nudge must pass the ethical check
 - Cite the behavioral principle for each recommendation

@@ -49,7 +49,7 @@ Rules:
 - Every finding must reference a specific file and line.
 - Every finding must include a concrete fix, not just "consider improving."
 - Do NOT flag: style preferences already handled by linter, obvious patterns, things the user didn't change.
-- Do NOT suggest adding icons, emojis, or decorative elements.
+- Do NOT suggest adding emojis. Icons (Tabler) are fine where functional.
 
 ### Step 5: Summary
 

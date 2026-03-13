@@ -34,9 +34,10 @@ paths:
 
 ## Icons
 
-- **NEVER add icons unless the user explicitly asks for them.** Text-only by default.
-- When requested: `import { IconName } from '@tabler/icons-preact'` — individual imports only, never full set
+- Default icon set: Tabler Icons. `import { IconName } from '@tabler/icons-preact'` — individual imports only, never full set.
+- User can specify a different icon set — defer to their choice.
 - Icons always need text labels. Icon-only buttons need `aria-label`.
+- No emojis in UI elements.
 
 ## Performance
 

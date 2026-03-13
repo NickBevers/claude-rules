@@ -90,4 +90,4 @@ If the project needs hero images, illustrations, or social media assets:
 - [ ] At least one option is genuinely distinctive
 - [ ] Colorblind-safe
 - [ ] Semantic colors included (success, warning, error, info)
-- [ ] No icons added unless user requested them
+- [ ] Icon recommendations use Tabler Icons (or user-specified set)

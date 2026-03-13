@@ -41,9 +41,10 @@ paths:
 
 ## Icons
 
-- **NEVER add icons to any element unless the user explicitly requests them.**
-- No decorative icons. No auto-adding icons to buttons, nav, headings, or lists.
-- When user requests: Tabler at 16px inline, 20px buttons, 24px navigation. Always paired with text label.
+- Default icon set: Tabler Icons. Sizes: 16px inline, 20px buttons, 24px navigation. Always paired with text label.
+- User can override with a different icon set.
+- No purely decorative icons — every icon should aid comprehension or navigation.
+- No emojis in UI.
 
 ## Design Tokens
 
