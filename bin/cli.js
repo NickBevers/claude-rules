@@ -155,12 +155,12 @@ Aider does not support subagent spawning. For sparring workflows, the user shoul
 // Commands
 // ---------------------------------------------------------------------------
 
-function cmdInit(targetDir, agents) {
+function cmdInit(targetDir, agents, { force = false } = {}) {
   const projectDir = resolve(targetDir);
-  log(`Initializing in ${BOLD}${projectDir}${RESET}`);
+  log(`Initializing in ${BOLD}${projectDir}${RESET}${force ? ` ${YELLOW}(force)${RESET}` : ""}`);
 
   // Always generate Claude Code config (source format)
-  syncClaude(projectDir);
+  syncClaude(projectDir, { force });
 
   // Generate other agent configs if requested
   for (const agent of agents) {
@@ -181,7 +181,7 @@ function cmdInit(targetDir, agents) {
   }
 }
 
-function syncClaude(projectDir) {
+function syncClaude(projectDir, { force = false } = {}) {
   log("Copying Claude Code config...");
 
   const pkgRules = join(PKG_ROOT, "rules");
@@ -198,7 +198,7 @@ function syncClaude(projectDir) {
     const existingContent = readFileSync(claudeDest, "utf8").trim();
 
     // Skip if project already contains the package content (already merged)
-    if (existingContent.includes(pkgContent)) {
+    if (!force && existingContent.includes(pkgContent)) {
       log("  -> CLAUDE.md (already includes global rules, skipped)");
     } else {
       const MERGE_MARKER = "# --- Project Rules ---";
@@ -222,7 +222,7 @@ function syncClaude(projectDir) {
   let ruleSkipped = 0;
   for (const file of readdirSync(pkgRules).filter(f => f.endsWith(".md"))) {
     const dest = join(rulesDest, file);
-    if (!existsSync(dest)) {
+    if (force || !existsSync(dest)) {
       copyFileSync(join(pkgRules, file), dest);
       ruleAdded++;
     } else {
@@ -230,7 +230,7 @@ function syncClaude(projectDir) {
     }
   }
   if (ruleAdded > 0 || ruleSkipped > 0) {
-    log(`  -> rules/ (${ruleAdded} added, ${ruleSkipped} existing kept)`);
+    log(`  -> rules/ (${ruleAdded} ${force ? "overwritten" : "added"}, ${ruleSkipped} existing kept)`);
   } else {
     log("  -> rules/ (up to date)");
   }
@@ -243,7 +243,7 @@ function syncClaude(projectDir) {
     const destDir = join(skillsDest, dir.name);
     const skillFile = join(pkgSkills, dir.name, "SKILL.md");
     if (existsSync(skillFile)) {
-      if (!existsSync(join(destDir, "SKILL.md"))) {
+      if (force || !existsSync(join(destDir, "SKILL.md"))) {
         mkdirSync(destDir, { recursive: true });
         copyFileSync(skillFile, join(destDir, "SKILL.md"));
         skillAdded++;
@@ -253,7 +253,7 @@ function syncClaude(projectDir) {
     }
   }
   if (skillAdded > 0 || skillSkipped > 0) {
-    log(`  -> skills/ (${skillAdded} added, ${skillSkipped} existing kept)`);
+    log(`  -> skills/ (${skillAdded} ${force ? "overwritten" : "added"}, ${skillSkipped} existing kept)`);
   } else {
     log("  -> skills/ (up to date)");
   }
@@ -416,10 +416,13 @@ if (!command || command === "--help" || command === "-h") {
 ${BOLD}claude-rules${RESET} v${VERSION} — AI agent configuration
 
 ${BOLD}Usage:${RESET}
-  claude-rules init [agents...]       Initialize a project (default: claude)
+  claude-rules init [agents...] [-f]  Initialize a project (default: claude)
   claude-rules setup                  Symlink into ~/.claude/ (global install)
   claude-rules convert <agent|all>    Generate config for another agent
   claude-rules --help                 Show this help
+
+${BOLD}Flags:${RESET}
+  --force, -f    Overwrite existing files (re-merge CLAUDE.md, replace rules/skills)
 
 ${BOLD}Agents:${RESET} claude, cursor, windsurf, copilot, aider, all
 
@@ -451,7 +454,8 @@ ${BOLD}Examples:${RESET}
 switch (command) {
   case "init": {
     const agents = args.slice(1).filter(a => !a.startsWith("-"));
-    cmdInit(".", agents.length ? agents : ["claude"]);
+    const force = args.includes("--force") || args.includes("-f");
+    cmdInit(".", agents.length ? agents : ["claude"], { force });
     break;
   }
   case "setup":

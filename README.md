@@ -51,6 +51,16 @@ bunx @nickbevers/claude-rules init
 | `skills/code-review/` (new) | Added | — |
 | `skills/code-review/` (exists) | Kept as-is | Kept as-is |
 
+### Force re-init (overwrite everything)
+
+If you want to reset all rules and skills to the latest package versions — for example after a major update — use `--force`:
+
+```bash
+bunx @nickbevers/claude-rules init --force
+```
+
+This overwrites all existing rule and skill files with the package versions and re-merges `CLAUDE.md` (your project-specific rules below the `# --- Project Rules ---` marker are still preserved).
+
 The merged `CLAUDE.md` looks like this:
 
 ```markdown
