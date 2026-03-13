@@ -234,20 +234,47 @@ Skills like `design-discovery`, `micro-animations`, and `frontend-design` use pa
 
 The sparring prevents generic outputs. Agent A pushes for distinctiveness, Agent B pushes for polish, and the cross-critique forces the best of both.
 
-## Cross-Agent Conversion
+## Converting to Other AI Agents
 
-`rules/` is the single source of truth. Other agent configs are **generated**, not maintained:
+These rules are written in Claude Code's native format (`rules/*.md` with YAML `paths:` frontmatter + `skills/*/SKILL.md`). If you also use Cursor, Windsurf, Copilot, or Aider, the `convert` command generates their config from the same rules.
+
+### Supported Agents
+
+| Agent | Command | Output File |
+|---|---|---|
+| Cursor | `bunx @nickbevers/claude-rules convert cursor` | `.cursorrules` |
+| Windsurf | `bunx @nickbevers/claude-rules convert windsurf` | `.windsurfrules` |
+| GitHub Copilot | `bunx @nickbevers/claude-rules convert copilot` | `.github/copilot-instructions.md` |
+| Aider | `bunx @nickbevers/claude-rules convert aider` | `.aider.conf.yml` + `CONVENTIONS.md` |
+| All at once | `bunx @nickbevers/claude-rules convert all` | All of the above |
+
+Replace `bunx` with `npx`, `pnpm dlx`, or `yarn dlx` as needed.
+
+### How It Works
 
 ```
 rules/*.md (with YAML frontmatter)  ──┬──>  Claude Code (native, no conversion needed)
 skills/*/SKILL.md                     │
-                                      ├──>  .cursorrules (flat concatenation + adapter)
-                                      ├──>  .windsurfrules (flat concatenation + adapter)
+                                      ├──>  .cursorrules
+                                      ├──>  .windsurfrules
                                       ├──>  .github/copilot-instructions.md
                                       └──>  CONVENTIONS.md + .aider.conf.yml
 ```
 
-The `convert` command strips YAML `paths:` frontmatter and concatenates all rules into the flat format each agent expects. Agent-specific extras are embedded in the CLI and appended automatically.
+The `convert` command:
+1. Reads `rules/*.md` and `skills/*/SKILL.md` from your local project (falls back to the package if no local rules exist)
+2. Strips YAML `paths:` frontmatter
+3. Concatenates everything into the flat format each agent expects
+4. Appends agent-specific guidance (e.g., "Cursor can't spawn subagents — use sequential sparring")
+
+### When to Re-run
+
+Re-run `convert` after editing any rule or skill file so the other agent configs stay in sync:
+
+```bash
+# After editing rules/frontend.md
+bunx @nickbevers/claude-rules convert all
+```
 
 No `.ai/` directory. No sync scripts. No stale copies. One source, one conversion step.
 
