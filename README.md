@@ -160,6 +160,7 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | `mcp-builder`            | "build MCP", "MCP server", "agent tool"             |
 | `threat-detection`       | "threat model", "security review", "attack surface" |
 | `workflow-optimizer`     | "optimize workflow", "speed up build", "DX"         |
+| `merge-conflict`         | "merge conflict", "resolve conflict", "fix conflicts"|
 
 ### Token Budget
 
@@ -209,7 +210,7 @@ Compared to loading all 744 lines on every interaction.
     ├── project-kickoff/SKILL.md
     ├── seo-audit/SKILL.md
     ├── stack-detect/SKILL.md
-    └── ... (18 total)
+    └── ... (19 total)
 ```
 
 ### What Goes Where

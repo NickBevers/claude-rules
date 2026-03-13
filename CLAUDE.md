@@ -62,6 +62,7 @@ If you showed the output to someone and said "AI made this," would they believe 
 - Read existing code before modifying.
 - If unsure, ask. Do not assume.
 - Git branches: `feature/TICKET-ID-short-desc`, `fix/short-desc`
+- **Merge conflicts**: If you encounter conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), stop and show the user both sides. Do NOT resolve silently — ask which version to keep or whether to merge. If the user explicitly asks you to resolve, use the `merge-conflict` skill.
 
 ## Paired Subagent Sparring
 
