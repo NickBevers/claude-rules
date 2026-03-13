@@ -4,24 +4,24 @@
  * claude-rules CLI
  *
  * Usage:
- *   bunx github:NickBevers/claude-rules init [agents...]
- *   npx github:NickBevers/claude-rules init [agents...]
+ *   bunx @nickbevers/claude-rules init [agents...]
+ *   npx @nickbevers/claude-rules init [agents...]
  *   claude-rules init                  # Claude only (default)
  *   claude-rules init claude cursor    # Multiple agents
  *   claude-rules init all              # All agents
  *   claude-rules setup                 # Symlink into ~/.claude/ (global)
- *   claude-rules sync [agent]          # Re-sync agent configs
+ *   claude-rules convert <agent>       # Generate config for another agent
  *   claude-rules --help
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, copyFileSync, statSync, symlinkSync, unlinkSync, renameSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, copyFileSync, symlinkSync, unlinkSync, renameSync, statSync, lstatSync } from "node:fs";
 import { join, dirname, basename, resolve } from "node:path";
-import { execSync } from "node:child_process";
 import { homedir } from "node:os";
 
 const PKG_ROOT = resolve(dirname(import.meta.url.replace("file://", "")), "..");
-const AI_DIR = join(PKG_ROOT, ".ai");
-const ADAPTERS_DIR = join(PKG_ROOT, "adapters");
+const RULES_DIR = join(PKG_ROOT, "rules");
+const SKILLS_DIR = join(PKG_ROOT, "skills");
+const CLAUDE_MD = join(PKG_ROOT, "CLAUDE.md");
 const VERSION = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")).version;
 
 const RESET = "\x1b[0m";
@@ -52,85 +52,99 @@ function copyDirRecursive(src, dest) {
   }
 }
 
-function backupIfExists(target) {
-  try {
-    const stat = statSync(target);
-    const isLink = false; // lstatSync needed for symlinks
-    try {
-      const lstat = statSync(target);
-      // If it's a real file/dir, back it up
-      const backup = `${target}.backup.${Date.now()}`;
-      renameSync(target, backup);
-      warn(`Backed up ${target} -> ${backup}`);
-    } catch {
-      // ignore
-    }
-  } catch {
-    // doesn't exist, nothing to back up
+/** Strip YAML frontmatter (--- ... ---) from markdown content */
+function stripFrontmatter(content) {
+  const match = content.match(/^---\n[\s\S]*?\n---\n+/);
+  return match ? content.slice(match[0].length) : content;
+}
+
+/** Read all rule files, strip frontmatter, return concatenated content */
+function collectRules() {
+  const parts = [];
+  for (const file of readdirSync(RULES_DIR).filter(f => f.endsWith(".md")).sort()) {
+    const content = readFileSync(join(RULES_DIR, file), "utf8");
+    parts.push(stripFrontmatter(content));
   }
+  return parts.join("\n---\n\n");
+}
+
+/** Read all skill files, strip frontmatter, return concatenated content */
+function collectSkills() {
+  const parts = [];
+  for (const dir of readdirSync(SKILLS_DIR, { withFileTypes: true }).filter(d => d.isDirectory())) {
+    const skillFile = join(SKILLS_DIR, dir.name, "SKILL.md");
+    if (existsSync(skillFile)) {
+      const content = readFileSync(skillFile, "utf8");
+      parts.push(stripFrontmatter(content));
+    }
+  }
+  return parts.join("\n---\n\n");
+}
+
+/** Read CLAUDE.md content (already has no frontmatter) */
+function collectPrinciples() {
+  return readFileSync(CLAUDE_MD, "utf8");
 }
 
 // ---------------------------------------------------------------------------
-// Path scope mappings for Claude Code rules
+// Adapter extras — embedded to avoid shipping extra directories
 // ---------------------------------------------------------------------------
-const PATH_SCOPES = {
-  "frontend-development": [
-    '"**/*.tsx"', '"**/*.jsx"', '"**/*.astro"', '"**/*.module.css"',
-    '"**/*.css"', '"**/components/**"', '"**/islands/**"',
-    '"**/pages/**"', '"**/layouts/**"'
-  ],
-  "backend-development": [
-    '"**/server/**"', '"**/api/**"', '"**/*.server.ts"',
-    '"**/routes/**"', '"**/services/**"', '"**/middleware/**"'
-  ],
-  security: [
-    '"**/auth/**"', '"**/session*"', '"**/middleware*"',
-    '"**/*guard*"', '"**/*crypt*"', '"**/*password*"',
-    '"**/*permission*"', '"**/*role*"'
-  ],
-  testing: [
-    '"**/*.test.*"', '"**/*.spec.*"', '"**/e2e/**"',
-    '"**/tests/**"', '"**/test/**"', '"**/vitest*"', '"**/playwright*"'
-  ],
-  devops: [
-    '"**/Dockerfile*"', '"**/docker-compose*"', '"**/.github/**"',
-    '"**/*.yml"', '"**/*.yaml"', '"**/deploy*"', '"**/coolify*"'
-  ],
-  design: [
-    '"**/*.module.css"', '"**/*.css"', '"**/tokens*"',
-    '"**/theme*"', '"**/design*"'
-  ],
-  ticketing: ['"**/.claude/tickets/**"', '"**/tickets/**"'],
-  planning: ['"**/.claude/research/**"', '"**/decisions*"', '"**/architecture*"'],
-  git: ['"**/.gitignore"', '"**/.gitattributes"', '"**/.github/**"'],
-  research: ['"**/.claude/research/**"', '"**/research/**"', '"**/spike*"'],
-  laravel: [
-    '"**/*.php"', '"**/livewire/**"', '"**/resources/views/**"',
-    '"**/app/**"', '"**/routes/**"', '"**/database/migrations/**"',
-    '"**/composer.json"', '"**/*.blade.php"'
-  ],
-  compliance: [
-    '"**/privacy*"', '"**/cookie*"', '"**/consent*"',
-    '"**/gdpr*"', '"**/legal*"', '"**/terms*"', '"**/policy*"'
-  ],
-  incident: [
-    '"**/incident*"', '"**/postmortem*"', '"**/runbook*"',
-    '"**/status*"', '"**/ops/**"', '"**/monitoring*"'
-  ],
-  copywriting: [
-    '"**/components/**"', '"**/pages/**"', '"**/layouts/**"',
-    '"**/content/**"', '"**/copy*"', '"**/text*"', '"**/*.astro"'
-  ],
-  database: [
-    '"**/schema*"', '"**/migrations/**"', '"**/drizzle*"',
-    '"**/prisma/**"', '"**/seeds/**"', '"**/db/**"'
-  ],
-};
 
-// Map .ai/rules/ filenames to output filenames
-const RULE_NAME_MAP = {
-  "frontend-development": "frontend",
-  "backend-development": "backend",
+const ADAPTER_EXTRAS = {
+  cursor: `## Cursor Specific
+
+### Composer Mode
+
+When working in Composer mode (multi-file edits), follow the same "read before write" principle. Always check existing code before modifying.
+
+### Inline Edits
+
+For inline edit suggestions (Cmd+K), keep changes minimal and focused. Don't expand scope beyond what was selected.
+
+### Skills/Workflows
+
+Cursor cannot spawn subagents. When a skill document describes a "sparring" workflow, perform it sequentially:
+1. Generate Option A (bold/expressive direction)
+2. Generate Option B (refined/subtle direction)
+3. Self-critique both options
+4. Present 2-3 merged options to the user
+
+### Context Window
+
+Cursor has a limited context window. If rules are too long, prioritize: principles > domain rules for the current task > skills.`,
+
+  windsurf: `## Windsurf Specific
+
+### Cascade Mode
+
+Windsurf's Cascade can handle multi-step workflows. When a skill describes a sparring workflow, follow the sequential approach:
+1. Generate both directions independently
+2. Cross-critique
+3. Merge into final options
+
+### File Operations
+
+Always use Windsurf's built-in file operations rather than terminal commands for reading and editing files.`,
+
+  copilot: `## GitHub Copilot Specific
+
+### Scope
+
+Copilot primarily assists with inline completions and chat. For multi-step workflows described in Skills, use Copilot Chat and follow the steps manually.
+
+### Agent Mode
+
+When using Copilot's agent mode (@workspace), it can follow the full workflow instructions. For sparring workflows, perform them sequentially (generate both directions, cross-critique, merge).`,
+
+  aider: `## Aider Specific
+
+### File Context
+
+Aider works best when you explicitly add files to the chat with \`/add\`. Follow the "read before write" principle by reviewing added files before making changes.
+
+### Workflows
+
+Aider does not support subagent spawning. For sparring workflows, the user should run the workflow steps as separate Aider prompts, or use Aider's \`/run\` command to execute scripts that generate options.`,
 };
 
 // ---------------------------------------------------------------------------
@@ -141,191 +155,151 @@ function cmdInit(targetDir, agents) {
   const projectDir = resolve(targetDir);
   log(`Initializing in ${BOLD}${projectDir}${RESET}`);
 
-  // 1. Copy .ai/ source directory
-  const aiDest = join(projectDir, ".ai");
-  if (existsSync(aiDest)) {
-    warn(".ai/ already exists — merging (existing files preserved)");
-  }
-  mkdirSync(join(aiDest, "rules"), { recursive: true });
-  mkdirSync(join(aiDest, "skills"), { recursive: true });
+  // Always generate Claude Code config (source format)
+  syncClaude(projectDir);
 
-  // Copy rules (skip existing)
-  for (const f of readdirSync(join(AI_DIR, "rules"))) {
-    const dest = join(aiDest, "rules", f);
-    if (!existsSync(dest)) {
-      copyFileSync(join(AI_DIR, "rules", f), dest);
-      log(`  Copied rules/${f}`);
-    } else {
-      warn(`  Skipped rules/${f} (exists)`);
-    }
-  }
-
-  // Copy skills (skip existing)
-  for (const f of readdirSync(join(AI_DIR, "skills"))) {
-    const dest = join(aiDest, "skills", f);
-    if (!existsSync(dest)) {
-      copyFileSync(join(AI_DIR, "skills", f), dest);
-      log(`  Copied skills/${f}`);
-    } else {
-      warn(`  Skipped skills/${f} (exists)`);
-    }
-  }
-
-  // Copy manifest
-  const manifestDest = join(aiDest, "manifest.yaml");
-  if (!existsSync(manifestDest)) {
-    copyFileSync(join(AI_DIR, "manifest.yaml"), manifestDest);
-    log("  Copied manifest.yaml");
-  }
-
-  // 2. Generate agent configs
+  // Generate other agent configs if requested
   for (const agent of agents) {
-    if (agent === "claude" || agent === "all") syncClaude(projectDir);
-    if (agent === "cursor" || agent === "all") syncFlat(projectDir, "cursor", ".cursorrules");
-    if (agent === "windsurf" || agent === "all") syncFlat(projectDir, "windsurf", ".windsurfrules");
-    if (agent === "copilot" || agent === "all") syncCopilot(projectDir);
-    if (agent === "aider" || agent === "all") syncAider(projectDir);
+    if (agent === "all") {
+      convertAgent(projectDir, "cursor");
+      convertAgent(projectDir, "windsurf");
+      convertAgent(projectDir, "copilot");
+      convertAgent(projectDir, "aider");
+    } else if (agent !== "claude") {
+      convertAgent(projectDir, agent);
+    }
   }
 
-  // 3. Create .gitignore entries suggestion
   console.log("");
-  log("Done! Add to .gitignore if you don't want to commit generated files:");
-  console.log(`${DIM}  # AI agent configs (generated from .ai/)${RESET}`);
-  console.log(`${DIM}  rules/${RESET}`);
-  console.log(`${DIM}  skills/${RESET}`);
-  console.log(`${DIM}  .cursorrules${RESET}`);
-  console.log(`${DIM}  .windsurfrules${RESET}`);
-  console.log("");
-  log(`To regenerate: ${BOLD}claude-rules sync${RESET}`);
+  log("Done! Your project now has Claude Code rules.");
+  if (agents.some(a => a !== "claude")) {
+    console.log(`${DIM}  Generated agent configs are derived from rules/ — regenerate with: claude-rules convert <agent>${RESET}`);
+  }
 }
 
 function syncClaude(projectDir) {
-  log("Syncing Claude Code...");
+  log("Copying Claude Code config...");
 
-  const rulesDir = join(projectDir, "rules");
-  const skillsDir = join(projectDir, "skills");
-  mkdirSync(rulesDir, { recursive: true });
-  mkdirSync(skillsDir, { recursive: true });
-
-  // CLAUDE.md — create if missing
-  const claudeMd = join(projectDir, "CLAUDE.md");
-  if (!existsSync(claudeMd)) {
-    const principles = readFileSync(join(AI_DIR, "rules", "principles.md"), "utf8");
-    writeFileSync(claudeMd, `# Global Rules\n\nDomain rules in \`rules/\` load by file path. Skills in \`skills/\` load by keyword.\n\n${principles}`);
-    log("  -> CLAUDE.md (created)");
+  // Copy CLAUDE.md
+  const claudeDest = join(projectDir, "CLAUDE.md");
+  if (!existsSync(claudeDest)) {
+    copyFileSync(CLAUDE_MD, claudeDest);
+    log("  -> CLAUDE.md");
   } else {
-    log("  -> CLAUDE.md (exists, not overwritten)");
+    warn("  -> CLAUDE.md (exists, skipped)");
   }
 
-  // Generate path-scoped rules
-  const ruleFiles = readdirSync(join(AI_DIR, "rules")).filter(f => f.endsWith(".md") && f !== "principles.md");
+  // Copy rules/
+  const rulesDest = join(projectDir, "rules");
+  mkdirSync(rulesDest, { recursive: true });
   let ruleCount = 0;
-
-  for (const file of ruleFiles) {
-    const key = file.replace(".md", "");
-    const scope = PATH_SCOPES[key];
-    if (!scope) continue; // skip rules without path scoping
-
-    const outputName = (RULE_NAME_MAP[key] || key) + ".md";
-    const content = readFileSync(join(AI_DIR, "rules", file), "utf8");
-    const pathsYaml = scope.map(p => `  - ${p}`).join("\n");
-    const scoped = `---\npaths:\n${pathsYaml}\n---\n\n${content}`;
-    writeFileSync(join(rulesDir, outputName), scoped);
-    ruleCount++;
+  for (const file of readdirSync(RULES_DIR).filter(f => f.endsWith(".md"))) {
+    const dest = join(rulesDest, file);
+    if (!existsSync(dest)) {
+      copyFileSync(join(RULES_DIR, file), dest);
+      ruleCount++;
+    }
   }
   log(`  -> rules/ (${ruleCount} path-scoped files)`);
 
-  // Generate skills in skills/{name}/SKILL.md format
-  const skillFiles = readdirSync(join(AI_DIR, "skills")).filter(f => f.endsWith(".md") && f !== "SKILL-FORMAT.md");
+  // Copy skills/
+  const skillsDest = join(projectDir, "skills");
   let skillCount = 0;
-
-  for (const file of skillFiles) {
-    const name = file.replace(".md", "");
-    const skillDir = join(skillsDir, name);
-    mkdirSync(skillDir, { recursive: true });
-    copyFileSync(join(AI_DIR, "skills", file), join(skillDir, "SKILL.md"));
-    skillCount++;
+  for (const dir of readdirSync(SKILLS_DIR, { withFileTypes: true }).filter(d => d.isDirectory())) {
+    const destDir = join(skillsDest, dir.name);
+    const skillFile = join(SKILLS_DIR, dir.name, "SKILL.md");
+    if (existsSync(skillFile) && !existsSync(join(destDir, "SKILL.md"))) {
+      mkdirSync(destDir, { recursive: true });
+      copyFileSync(skillFile, join(destDir, "SKILL.md"));
+      skillCount++;
+    }
   }
   log(`  -> skills/ (${skillCount} on-demand)`);
 }
 
-function syncFlat(projectDir, agent, outputFile) {
-  log(`Syncing ${agent}...`);
-
-  const parts = [`# ${agent.charAt(0).toUpperCase() + agent.slice(1)} Rules\n`];
-  parts.push(`# Auto-generated from .ai/ — do not edit directly.`);
-  parts.push(`# Regenerate: claude-rules sync ${agent}\n`);
-
-  // Principles first
-  parts.push(readFileSync(join(AI_DIR, "rules", "principles.md"), "utf8"));
-  parts.push("\n---\n");
-
-  // All other rules
-  for (const f of readdirSync(join(AI_DIR, "rules")).filter(f => f.endsWith(".md") && f !== "principles.md")) {
-    parts.push(readFileSync(join(AI_DIR, "rules", f), "utf8"));
-    parts.push("\n---\n");
+function convertAgent(projectDir, agent) {
+  switch (agent) {
+    case "cursor":
+      convertFlat(projectDir, agent, ".cursorrules");
+      break;
+    case "windsurf":
+      convertFlat(projectDir, agent, ".windsurfrules");
+      break;
+    case "copilot":
+      convertCopilot(projectDir);
+      break;
+    case "aider":
+      convertAider(projectDir);
+      break;
+    default:
+      err(`Unknown agent: ${agent}. Supported: cursor, windsurf, copilot, aider`);
   }
+}
 
-  // Skills
-  for (const f of readdirSync(join(AI_DIR, "skills")).filter(f => f.endsWith(".md") && f !== "SKILL-FORMAT.md")) {
-    parts.push(readFileSync(join(AI_DIR, "skills", f), "utf8"));
-    parts.push("\n---\n");
-  }
+function convertFlat(projectDir, agent, outputFile) {
+  log(`Converting for ${agent}...`);
 
-  // Adapter extras
-  const adapterFile = join(ADAPTERS_DIR, agent, "extra.md");
-  if (existsSync(adapterFile)) {
-    parts.push(readFileSync(adapterFile, "utf8"));
+  const parts = [
+    `# ${agent.charAt(0).toUpperCase() + agent.slice(1)} Rules\n`,
+    `# Auto-generated from rules/ and skills/ — do not edit directly.`,
+    `# Regenerate: claude-rules convert ${agent}\n`,
+    collectPrinciples(),
+    "\n---\n",
+    collectRules(),
+    "\n---\n",
+    collectSkills(),
+  ];
+
+  if (ADAPTER_EXTRAS[agent]) {
+    parts.push("\n---\n\n", ADAPTER_EXTRAS[agent]);
   }
 
   writeFileSync(join(projectDir, outputFile), parts.join("\n"));
   log(`  -> ${outputFile}`);
 }
 
-function syncCopilot(projectDir) {
-  log("Syncing Copilot...");
+function convertCopilot(projectDir) {
+  log("Converting for Copilot...");
 
   const githubDir = join(projectDir, ".github");
   mkdirSync(githubDir, { recursive: true });
 
-  const parts = ["# Copilot Instructions\n"];
-  parts.push("<!-- Auto-generated from .ai/ — do not edit directly. -->\n");
+  const parts = [
+    "# Copilot Instructions\n",
+    "<!-- Auto-generated from rules/ and skills/ — do not edit directly. -->\n",
+    collectPrinciples(),
+    "\n",
+    collectRules(),
+    "\n## Workflows (Reference)\n",
+    collectSkills(),
+  ];
 
-  parts.push(readFileSync(join(AI_DIR, "rules", "principles.md"), "utf8"));
-
-  for (const f of readdirSync(join(AI_DIR, "rules")).filter(f => f.endsWith(".md") && f !== "principles.md")) {
-    parts.push(readFileSync(join(AI_DIR, "rules", f), "utf8"));
+  if (ADAPTER_EXTRAS.copilot) {
+    parts.push("\n\n", ADAPTER_EXTRAS.copilot);
   }
-
-  parts.push("\n## Workflows (Reference)\n");
-  for (const f of readdirSync(join(AI_DIR, "skills")).filter(f => f.endsWith(".md") && f !== "SKILL-FORMAT.md")) {
-    parts.push(readFileSync(join(AI_DIR, "skills", f), "utf8"));
-  }
-
-  const adapterFile = join(ADAPTERS_DIR, "copilot", "extra.md");
-  if (existsSync(adapterFile)) parts.push(readFileSync(adapterFile, "utf8"));
 
   writeFileSync(join(githubDir, "copilot-instructions.md"), parts.join("\n"));
   log("  -> .github/copilot-instructions.md");
 }
 
-function syncAider(projectDir) {
-  log("Syncing Aider...");
+function convertAider(projectDir) {
+  log("Converting for Aider...");
 
   writeFileSync(join(projectDir, ".aider.conf.yml"),
-    "# Auto-generated from .ai/\nread: CONVENTIONS.md\nauto-commits: false\nno-auto-lint: false\n"
+    "# Auto-generated — regenerate: claude-rules convert aider\nread: CONVENTIONS.md\nauto-commits: false\nno-auto-lint: false\n"
   );
 
-  const parts = ["# Project Conventions\n"];
-  parts.push("<!-- Auto-generated from .ai/ — do not edit directly. -->\n");
-  parts.push(readFileSync(join(AI_DIR, "rules", "principles.md"), "utf8"));
+  const parts = [
+    "# Project Conventions\n",
+    "<!-- Auto-generated from rules/ and skills/ — do not edit directly. -->\n",
+    collectPrinciples(),
+    "\n",
+    collectRules(),
+  ];
 
-  for (const f of readdirSync(join(AI_DIR, "rules")).filter(f => f.endsWith(".md") && f !== "principles.md")) {
-    parts.push(readFileSync(join(AI_DIR, "rules", f), "utf8"));
+  if (ADAPTER_EXTRAS.aider) {
+    parts.push("\n\n", ADAPTER_EXTRAS.aider);
   }
-
-  const adapterFile = join(ADAPTERS_DIR, "aider", "extra.md");
-  if (existsSync(adapterFile)) parts.push(readFileSync(adapterFile, "utf8"));
 
   writeFileSync(join(projectDir, "CONVENTIONS.md"), parts.join("\n"));
   log("  -> .aider.conf.yml + CONVENTIONS.md");
@@ -338,74 +312,54 @@ function cmdSetup() {
   log("Setting up global symlinks...");
 
   const links = [
-    [join(PKG_ROOT, "CLAUDE.md"), join(claudeDir, "CLAUDE.md")],
-    [join(PKG_ROOT, "rules"), join(claudeDir, "rules")],
-    [join(PKG_ROOT, "skills"), join(claudeDir, "skills")],
+    [CLAUDE_MD, join(claudeDir, "CLAUDE.md")],
+    [RULES_DIR, join(claudeDir, "rules")],
+    [SKILLS_DIR, join(claudeDir, "skills")],
   ];
 
   for (const [src, dest] of links) {
-    try { unlinkSync(dest); } catch {}
+    // Remove existing symlink
     try {
-      const stat = statSync(dest);
-      const backup = `${dest}.backup.${Date.now()}`;
-      renameSync(dest, backup);
-      warn(`Backed up ${dest}`);
-    } catch {}
+      if (lstatSync(dest).isSymbolicLink()) {
+        unlinkSync(dest);
+      } else {
+        // Real file/dir — back it up
+        const backup = `${dest}.backup.${Date.now()}`;
+        renameSync(dest, backup);
+        warn(`Backed up ${dest} -> ${backup}`);
+      }
+    } catch {
+      // Doesn't exist, fine
+    }
 
     symlinkSync(src, dest);
-    log(`  ${basename(dest)} -> ${dest}`);
+    log(`  ${basename(dest)} -> ${src}`);
   }
 
   console.log("");
   log("Done! Claude Code will now load your global rules.");
 }
 
-function cmdSync(targetDir, agents) {
+function cmdConvert(targetDir, agents) {
   const projectDir = resolve(targetDir);
-  log(`Re-syncing in ${projectDir}`);
 
-  // Check if .ai/ exists
-  if (!existsSync(join(projectDir, ".ai"))) {
-    err("No .ai/ directory found. Run 'claude-rules init' first.");
+  if (agents.length === 0) {
+    err("Specify an agent: claude-rules convert <cursor|windsurf|copilot|aider|all>");
     process.exit(1);
   }
 
   for (const agent of agents) {
-    if (agent === "claude" || agent === "all") syncClaude(projectDir);
-    if (agent === "cursor" || agent === "all") syncFlat(projectDir, "cursor", ".cursorrules");
-    if (agent === "windsurf" || agent === "all") syncFlat(projectDir, "windsurf", ".windsurfrules");
-    if (agent === "copilot" || agent === "all") syncCopilot(projectDir);
-    if (agent === "aider" || agent === "all") syncAider(projectDir);
+    if (agent === "all") {
+      convertAgent(projectDir, "cursor");
+      convertAgent(projectDir, "windsurf");
+      convertAgent(projectDir, "copilot");
+      convertAgent(projectDir, "aider");
+    } else {
+      convertAgent(projectDir, agent);
+    }
   }
 
-  log("Sync complete.");
-}
-
-function cmdUpdate(targetDir) {
-  const projectDir = resolve(targetDir);
-  log("Updating .ai/ from latest source...");
-
-  // Update rules (overwrite all)
-  const aiDest = join(projectDir, ".ai");
-  if (!existsSync(aiDest)) {
-    err("No .ai/ directory found. Run 'claude-rules init' first.");
-    process.exit(1);
-  }
-
-  for (const f of readdirSync(join(AI_DIR, "rules"))) {
-    copyFileSync(join(AI_DIR, "rules", f), join(aiDest, "rules", f));
-  }
-  log("  Updated .ai/rules/");
-
-  for (const f of readdirSync(join(AI_DIR, "skills"))) {
-    copyFileSync(join(AI_DIR, "skills", f), join(aiDest, "skills", f));
-  }
-  log("  Updated .ai/skills/");
-
-  copyFileSync(join(AI_DIR, "manifest.yaml"), join(aiDest, "manifest.yaml"));
-  log("  Updated manifest.yaml");
-
-  log("Done. Run 'claude-rules sync' to regenerate agent configs.");
+  log("Conversion complete.");
 }
 
 // ---------------------------------------------------------------------------
@@ -417,14 +371,13 @@ const command = args[0];
 
 if (!command || command === "--help" || command === "-h") {
   console.log(`
-${BOLD}claude-rules${RESET} v${VERSION} — AI agent configuration manager
+${BOLD}claude-rules${RESET} v${VERSION} — AI agent configuration
 
 ${BOLD}Usage:${RESET}
-  claude-rules init [agents...]    Initialize a project (default: claude)
-  claude-rules setup               Symlink into ~/.claude/ (global install)
-  claude-rules sync [agents...]    Re-generate agent configs from .ai/
-  claude-rules update              Update .ai/ rules/skills to latest
-  claude-rules --help              Show this help
+  claude-rules init [agents...]       Initialize a project (default: claude)
+  claude-rules setup                  Symlink into ~/.claude/ (global install)
+  claude-rules convert <agent|all>    Generate config for another agent
+  claude-rules --help                 Show this help
 
 ${BOLD}Agents:${RESET} claude, cursor, windsurf, copilot, aider, all
 
@@ -436,13 +389,16 @@ ${BOLD}Examples:${RESET}
   claude-rules init claude cursor
 
   ${DIM}# Quick setup via bunx (no install)${RESET}
-  bunx github:NickBevers/claude-rules init
+  bunx @nickbevers/claude-rules init
 
   ${DIM}# Install globally into ~/.claude/${RESET}
   claude-rules setup
 
-  ${DIM}# Update rules and re-sync${RESET}
-  claude-rules update && claude-rules sync
+  ${DIM}# Generate Cursor rules from existing Claude rules${RESET}
+  claude-rules convert cursor
+
+  ${DIM}# Generate all agent configs${RESET}
+  claude-rules convert all
 `);
   process.exit(0);
 }
@@ -456,14 +412,11 @@ switch (command) {
   case "setup":
     cmdSetup();
     break;
-  case "sync": {
+  case "convert": {
     const agents = args.slice(1).filter(a => !a.startsWith("-"));
-    cmdSync(".", agents.length ? agents : ["claude"]);
+    cmdConvert(".", agents);
     break;
   }
-  case "update":
-    cmdUpdate(".");
-    break;
   default:
     err(`Unknown command: ${command}`);
     console.log("Run 'claude-rules --help' for usage.");

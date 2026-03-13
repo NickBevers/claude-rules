@@ -58,7 +58,7 @@ install() {
 
   echo ""
   log_info "Done! Claude Code will now load:"
-  echo "  - CLAUDE.md on every interaction (~40 lines, always-on)"
+  echo "  - CLAUDE.md on every interaction (~68 lines, always-on)"
   echo "  - rules/*.md when touching matching file types (conditional)"
   echo "  - skills/*/SKILL.md on demand (zero cost until triggered)"
   echo ""

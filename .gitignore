@@ -1,4 +1,5 @@
 # Claude Code internal files — NEVER track these
+.claude/settings.local.json
 .credentials.json
 settings.json
 settings.local.json
