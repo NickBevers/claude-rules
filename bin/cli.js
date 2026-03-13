@@ -188,41 +188,75 @@ function syncClaude(projectDir) {
   const pkgSkills = join(PKG_ROOT, "skills");
   const pkgClaude = join(PKG_ROOT, "CLAUDE.md");
 
-  // Copy CLAUDE.md
+  // Copy or merge CLAUDE.md
   const claudeDest = join(projectDir, "CLAUDE.md");
   if (!existsSync(claudeDest)) {
     copyFileSync(pkgClaude, claudeDest);
     log("  -> CLAUDE.md");
   } else {
-    warn("  -> CLAUDE.md (exists, skipped)");
+    const pkgContent = readFileSync(pkgClaude, "utf8").trim();
+    const existingContent = readFileSync(claudeDest, "utf8").trim();
+
+    // Skip if project already contains the package content (already merged)
+    if (existingContent.includes(pkgContent)) {
+      log("  -> CLAUDE.md (already includes global rules, skipped)");
+    } else {
+      const MERGE_MARKER = "# --- Project Rules ---";
+      // If previously merged, replace the package section above the marker
+      if (existingContent.includes(MERGE_MARKER)) {
+        const projectSection = existingContent.split(MERGE_MARKER).slice(1).join(MERGE_MARKER);
+        writeFileSync(claudeDest, pkgContent + "\n\n" + MERGE_MARKER + projectSection);
+        log("  -> CLAUDE.md (updated global rules, preserved project rules)");
+      } else {
+        // First merge: package content on top, existing project content below marker
+        writeFileSync(claudeDest, pkgContent + "\n\n" + MERGE_MARKER + "\n\n" + existingContent + "\n");
+        log("  -> CLAUDE.md (merged: global rules + existing project rules)");
+      }
+    }
   }
 
-  // Copy rules/
+  // Copy rules/ (add new rules by name, never overwrite existing)
   const rulesDest = join(projectDir, "rules");
   mkdirSync(rulesDest, { recursive: true });
-  let ruleCount = 0;
+  let ruleAdded = 0;
+  let ruleSkipped = 0;
   for (const file of readdirSync(pkgRules).filter(f => f.endsWith(".md"))) {
     const dest = join(rulesDest, file);
     if (!existsSync(dest)) {
       copyFileSync(join(pkgRules, file), dest);
-      ruleCount++;
+      ruleAdded++;
+    } else {
+      ruleSkipped++;
     }
   }
-  log(`  -> rules/ (${ruleCount} path-scoped files)`);
+  if (ruleAdded > 0 || ruleSkipped > 0) {
+    log(`  -> rules/ (${ruleAdded} added, ${ruleSkipped} existing kept)`);
+  } else {
+    log("  -> rules/ (up to date)");
+  }
 
-  // Copy skills/
+  // Copy skills/ (add new skills by name, never overwrite existing)
   const skillsDest = join(projectDir, "skills");
-  let skillCount = 0;
+  let skillAdded = 0;
+  let skillSkipped = 0;
   for (const dir of readdirSync(pkgSkills, { withFileTypes: true }).filter(d => d.isDirectory())) {
     const destDir = join(skillsDest, dir.name);
     const skillFile = join(pkgSkills, dir.name, "SKILL.md");
-    if (existsSync(skillFile) && !existsSync(join(destDir, "SKILL.md"))) {
-      mkdirSync(destDir, { recursive: true });
-      copyFileSync(skillFile, join(destDir, "SKILL.md"));
-      skillCount++;
+    if (existsSync(skillFile)) {
+      if (!existsSync(join(destDir, "SKILL.md"))) {
+        mkdirSync(destDir, { recursive: true });
+        copyFileSync(skillFile, join(destDir, "SKILL.md"));
+        skillAdded++;
+      } else {
+        skillSkipped++;
+      }
     }
   }
-  log(`  -> skills/ (${skillCount} on-demand)`);
+  if (skillAdded > 0 || skillSkipped > 0) {
+    log(`  -> skills/ (${skillAdded} added, ${skillSkipped} existing kept)`);
+  } else {
+    log("  -> skills/ (up to date)");
+  }
 }
 
 function convertAgent(projectDir, agent) {

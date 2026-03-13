@@ -24,9 +24,43 @@ This copies three things into your project root:
 | `rules/*.md`        | `rules/`     | Path-scoped rules, loaded only when touching matching files |
 | `skills/*/SKILL.md` | `skills/`    | On-demand skills, zero cost until triggered                 |
 
-Existing files are never overwritten — if `CLAUDE.md` already exists, it's skipped.
+Running `init` is safe on existing projects — it merges and adds, never overwrites:
 
-After init, customize `CLAUDE.md` to add project-specific stack info, then commit the `rules/` and `skills/` directories alongside your code.
+- **`CLAUDE.md`** — if one already exists, the global rules are merged on top and your project-specific content is preserved below a `# --- Project Rules ---` marker. Re-running `init` updates the global section while keeping your project rules intact.
+- **`rules/`** — new rule files are added by name. Existing rules you've customized are kept as-is.
+- **`skills/`** — new skills are added by name. Existing skills are kept as-is.
+
+After init, add any project-specific configuration below the `# --- Project Rules ---` marker in `CLAUDE.md`, then commit the `rules/` and `skills/` directories alongside your code.
+
+### Re-running init (updating an existing project)
+
+Running `init` again is safe and encouraged when new rules or skills are added upstream:
+
+```bash
+bunx @nickbevers/claude-rules init
+```
+
+**What happens:**
+
+| Component | First run | Re-run |
+|---|---|---|
+| `CLAUDE.md` (no existing) | Copied from package | — |
+| `CLAUDE.md` (existing) | Merged: global rules on top + project rules below marker | Global section updated, project rules preserved |
+| `rules/frontend.md` (new) | Added | — |
+| `rules/frontend.md` (exists) | Kept as-is | Kept as-is |
+| `skills/code-review/` (new) | Added | — |
+| `skills/code-review/` (exists) | Kept as-is | Kept as-is |
+
+The merged `CLAUDE.md` looks like this:
+
+```markdown
+# Global Rules
+... (package global rules, updated on each init) ...
+
+# --- Project Rules ---
+
+... (your project-specific rules, never touched by init) ...
+```
 
 ### Also using Windsurf, Copilot, or Aider?
 
