@@ -1,6 +1,6 @@
 {
   "name": "@nickbevers/claude-rules",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "AI coding agent rules — Claude Code native, with conversion for Cursor, Windsurf, Copilot, and Aider",
   "author": "NickBevers",
   "type": "module",
