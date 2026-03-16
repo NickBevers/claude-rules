@@ -215,8 +215,26 @@ function syncClaude(projectDir, { force = false } = {}) {
     }
   }
 
-  // Copy rules/ (add new rules by name, never overwrite existing)
+  // Add rules/ and skills/ to .gitignore if neither directory exists yet
   const rulesDest = join(projectDir, "rules");
+  const skillsDest = join(projectDir, "skills");
+  if (!existsSync(rulesDest) && !existsSync(skillsDest)) {
+    const gitignorePath = join(projectDir, ".gitignore");
+    const entries = ["rules/", "skills/"];
+    if (existsSync(gitignorePath)) {
+      const content = readFileSync(gitignorePath, "utf8");
+      const toAdd = entries.filter(e => !content.split("\n").some(line => line.trim() === e));
+      if (toAdd.length > 0) {
+        writeFileSync(gitignorePath, content.trimEnd() + "\n" + toAdd.join("\n") + "\n");
+        log(`  -> .gitignore (added ${toAdd.join(", ")})`);
+      }
+    } else {
+      writeFileSync(gitignorePath, entries.join("\n") + "\n");
+      log("  -> .gitignore (created with rules/, skills/)");
+    }
+  }
+
+  // Copy rules/ (add new rules by name, never overwrite existing)
   mkdirSync(rulesDest, { recursive: true });
   let ruleAdded = 0;
   let ruleSkipped = 0;
@@ -236,7 +254,6 @@ function syncClaude(projectDir, { force = false } = {}) {
   }
 
   // Copy skills/ (add new skills by name, never overwrite existing)
-  const skillsDest = join(projectDir, "skills");
   let skillAdded = 0;
   let skillSkipped = 0;
   for (const dir of readdirSync(pkgSkills, { withFileTypes: true }).filter(d => d.isDirectory())) {
