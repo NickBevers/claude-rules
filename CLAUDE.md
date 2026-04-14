@@ -24,6 +24,7 @@ These are defaults only. **Always defer to the detected stack in `.claude/stack.
 | database | `rules/database.md` | schema, migrations, queries, ORM, data modeling |
 | security | `rules/security.md` | auth, sessions, encryption, headers, rate limiting |
 | testing | `rules/testing.md` | tests, E2E, unit tests, integration, accessibility |
+| accessibility | `rules/accessibility.md` | WCAG 2.2 AA baseline, alt text, labels, focus, contrast, ARIA — loads on any UI file |
 | devops | `rules/devops.md` | Docker, CI/CD, deployment, backups, infra |
 | laravel | `rules/laravel.md` | PHP, Laravel, Livewire, Blade, Eloquent |
 | compliance | `rules/compliance.md` | GDPR, cookies, privacy, licenses, accessibility legal |
@@ -33,6 +34,18 @@ These are defaults only. **Always defer to the detected stack in `.claude/stack.
 | ticketing | `rules/ticketing.md` | tickets, acceptance criteria, phases |
 | planning | `rules/planning.md` | architecture decisions, ADRs, roadmap |
 | research | `rules/research.md` | library eval, API eval, spikes |
+
+## Accessibility is always on
+
+**Default mode is accessibility-hawk.** On every UI change (new or edited component, page, form, media, widget) run the `a11y-hawk` skill before reporting done. Target **WCAG 2.2 Level AA** — this satisfies EAA (EN 301 549), UK PSBAR + Equality Act 2010, US ADA Title II (DOJ 2024 rule) / Title III, Section 508, and CVAA.
+
+Route to the sub-skills for depth:
+- POUR: `eaa-perceivable`, `eaa-operable`, `eaa-understandable`, `eaa-robust`
+- EAA extras: `eaa-products` (checkout/banking/transport/e-books), `eaa-statement`
+- Jurisdictions: `uk-accessibility`, `us-ada`, `us-section-508`, `us-cvaa`
+- AAA uplift is **opt-in only**: run `a11y-aaa` when the user explicitly asks and scopes it.
+
+When you fix an a11y issue, add a one-line `a11y [<CRITERION>]: <why>` comment at the change site — see `rules/accessibility.md` for the convention — and report the fix with file, line, criterion, and what changed.
 
 ## Hard Constraints
 
