@@ -22,6 +22,7 @@ Always read `rules/accessibility.md` first — it's the shared baseline. Then ro
 | Keyboard, focus, timing, motion, target size, input modalities | `eaa-operable` |
 | Language, readable copy, predictable UI, input errors, help | `eaa-understandable` |
 | ARIA, semantics, status messages, parsing, name/role/value | `eaa-robust` |
+| ARIA deep-dive: roles, attributes, widget patterns (tabs, combobox, dialog, menu, accordion, carousel, tree), accessible name computation, live regions, anti-patterns | `aria-authoring` |
 | Checkout, banking, booking/tickets, e-books, customer service | `eaa-products` |
 | Publishing an EAA accessibility statement | `eaa-statement` |
 | UK public sector site, gov.uk patterns, EqA reasonable adjustments | `uk-accessibility` |

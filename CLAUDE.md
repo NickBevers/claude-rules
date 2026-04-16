@@ -41,6 +41,7 @@ These are defaults only. **Always defer to the detected stack in `.claude/stack.
 
 Route to the sub-skills for depth:
 - POUR: `eaa-perceivable`, `eaa-operable`, `eaa-understandable`, `eaa-robust`
+- ARIA deep-dive: `aria-authoring` (roles, attributes, widget patterns, naming, live regions)
 - EAA extras: `eaa-products` (checkout/banking/transport/e-books), `eaa-statement`
 - Jurisdictions: `uk-accessibility`, `us-ada`, `us-section-508`, `us-cvaa`
 - AAA uplift is **opt-in only**: run `a11y-aaa` when the user explicitly asks and scopes it.
