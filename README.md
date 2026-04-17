@@ -205,6 +205,28 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | `threat-detection`       | "threat model", "security review", "attack surface" |
 | `workflow-optimizer`     | "optimize workflow", "speed up build", "DX"         |
 | `merge-conflict`         | "merge conflict", "resolve conflict", "fix conflicts"|
+| `frontend-react`         | "react component", "build in react", "react hook"   |
+| `frontend-preact`        | "preact component", "preact island", "preact signal" |
+| `frontend-astro`         | "astro page", "astro layout", "content collection"  |
+| `frontend-hooks`         | "custom hook", "extract hook", "useEffect help"     |
+| `frontend-forms`         | "build form", "form validation", "form component"   |
+| `frontend-state`         | "state management", "global state", "zustand"        |
+| `frontend-testing`       | "test component", "write tests", "testing strategy" |
+| `frontend-routing`       | "routing", "add route", "dynamic route"              |
+| `frontend-performance`   | "performance audit", "core web vitals", "bundle size"|
+| `frontend-data-fetching` | "fetch data", "tanstack query", "data loading"       |
+| `frontend-typescript`    | "type this", "fix types", "generic component"        |
+| `frontend-scaffold`      | "scaffold feature", "new feature", "set up feature"  |
+| `frontend-doc-sync`      | "check docs", "is this current", "verify api"        |
+| `astro-middleware`       | "astro middleware", "auth middleware", "onRequest"    |
+| `astro-view-transitions` | "view transitions", "page transitions", "persist"    |
+| `astro-integrations`    | "astro integration", "astro adapter", "astro config"  |
+| `astro-i18n`            | "astro i18n", "multilingual", "locale routing"        |
+| `astro-server-islands`  | "server island", "server:defer", "personalized"       |
+| `astro-actions`         | "astro action", "defineAction", "astro form"          |
+| `preact-compat`         | "preact compat", "react library in preact", "alias"   |
+| `preact-signals-patterns`| "signals pattern", "computed signal", "signal store" |
+| `pagespeed-audit`        | "pagespeed", "lighthouse", "core web vitals"          |
 
 ### Token Budget
 
@@ -254,7 +276,29 @@ Compared to loading all 744 lines on every interaction.
     ├── project-kickoff/SKILL.md
     ├── seo-audit/SKILL.md
     ├── stack-detect/SKILL.md
-    └── ... (19 total)
+    ├── frontend-react/SKILL.md
+    ├── frontend-preact/SKILL.md
+    ├── frontend-astro/SKILL.md
+    ├── frontend-hooks/SKILL.md
+    ├── frontend-forms/SKILL.md
+    ├── frontend-state/SKILL.md
+    ├── frontend-testing/SKILL.md
+    ├── frontend-routing/SKILL.md
+    ├── frontend-performance/SKILL.md
+    ├── frontend-data-fetching/SKILL.md
+    ├── frontend-typescript/SKILL.md
+    ├── frontend-scaffold/SKILL.md
+    ├── frontend-doc-sync/SKILL.md
+    ├── astro-middleware/SKILL.md
+    ├── astro-view-transitions/SKILL.md
+    ├── astro-integrations/SKILL.md
+    ├── astro-i18n/SKILL.md
+    ├── astro-server-islands/SKILL.md
+    ├── astro-actions/SKILL.md
+    ├── preact-compat/SKILL.md
+    ├── preact-signals-patterns/SKILL.md
+    ├── pagespeed-audit/SKILL.md
+    └── ... (55 total)
 ```
 
 ### What Goes Where

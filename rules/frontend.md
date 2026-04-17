@@ -16,21 +16,23 @@ paths:
 ## Astro + Preact
 
 - Astro pages in `.astro`, interactive components in `.tsx` (Preact)
-- Static pages: pre-rendered at build. Dynamic pages: server islands (SSR)
-- Astro 6 Zod: `import { z } from 'astro/zod'` (NOT from 'zod')
-- `preact/compat` only when a library requires React (e.g., VisX)
+- Static pages: pre-rendered at build. Dynamic pages: server islands (SSR) or `export const prerender = false`
+- Use Astro's built-in modules: `astro:content`, `astro:env`, `astro:actions`, `astro/zod` — never bare `zod` or `dotenv`
+- `preact/compat` only when a library requires React (e.g., VisX). Scope it — don't enable globally.
+
+## State
+
+- **Preact Signals** (`@preact/signals`) for shared or frequently-updating state — skips VDOM diffing
+- **`useState`** for truly local, ephemeral UI state (modal open, input focus)
+- **Nanostores** (`@nanostores/preact`) for cross-island state in Astro projects
+- Never store derived state — use `computed()` (Signals) or compute during render
+- Never prop-drill >2 levels — extract to Signal or nanostore
 
 ## CSS Modules
 
 - Scoped `.module.css` — no runtime cost, no class collisions
 - No inline styles beyond truly dynamic values
 - No `!important` — fix specificity properly
-
-## State
-
-- Cross-island: Nanostores only (`@nanostores/preact`)
-- Local: `useState` / `useReducer`
-- Never prop-drill >2 levels — extract to nanostore
 
 ## Icons
 
@@ -42,7 +44,8 @@ paths:
 ## Performance
 
 - Hydrate only interactive islands — minimize client JS
+- `client:visible` for below-fold, `client:load` for above-fold, `client:idle` for non-critical
 - Lazy-load below-the-fold components
-- Explicit dimensions on images/media (prevent CLS)
+- Explicit `width`/`height` on images/media (prevent CLS)
+- `loading="lazy"` + `decoding="async"` on below-fold images. `fetchpriority="high"` on LCP image.
 - Named imports only — no barrel file re-exports
-- `loading="lazy"` + `decoding="async"` on images below fold
