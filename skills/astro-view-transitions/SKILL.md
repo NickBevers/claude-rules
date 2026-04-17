@@ -6,324 +6,132 @@ allowed-tools: Agent, Read, Glob, Grep, Write, Edit, WebSearch, WebFetch
 
 # Astro View Transitions — SPA-Like Navigation
 
-View Transitions give Astro MPA sites SPA-like navigation with animated page changes — no client-side router needed.
+SPA-like navigation with animated page changes — no client-side router.
 
-## Component
+Use `<ClientRouter />` from `astro:transitions`. `<ViewTransitions />` was removed in Astro 6. `handleForms` prop also removed — form handling is now default.
 
-Use `<ClientRouter />` from `astro:transitions`. The old `<ViewTransitions />` name was removed in Astro 6.
-
-Also in Astro 6: the `handleForms` prop was removed — form handling during transitions is now default behavior.
-
-## Step 1: Basic Setup
-
-### Enable View Transitions
-
-Add the router component to your base layout:
+## Step 1: Setup
 
 ```astro
 ---
-// src/layouts/Base.astro
 import { ClientRouter } from 'astro:transitions'
 ---
 <html lang="en">
-<head>
-  <ClientRouter />
-</head>
-<body>
-  <slot />
-</body>
+<head><ClientRouter /></head>
+<body><slot /></body>
 </html>
 ```
 
-Once added, **all navigation between pages using this layout becomes client-side** with animated transitions. No per-page opt-in needed.
+All navigation between pages using this layout becomes client-side. No per-page opt-in.
 
-### Fallback Behavior
-
-Browsers without View Transitions API support get instant navigation (no animation, but still client-side SPA behavior). No polyfill needed — progressive enhancement by default.
-
-## Step 2: Transition Directives
+## Step 2: Directives
 
 ### `transition:name` — Shared Element Transitions
 
-Morph an element from one page into its counterpart on the next:
-
 ```astro
-<!-- Page A: Blog list -->
-<img
-  src={post.data.image}
-  alt={post.data.title}
-  transition:name={`hero-${post.slug}`}
-/>
-
-<!-- Page B: Blog detail -->
-<img
-  src={post.data.image}
-  alt={post.data.title}
-  transition:name={`hero-${post.slug}`}
-/>
+<!-- Same name on both pages morphs between them -->
+<img src={post.data.image} transition:name={`hero-${post.slug}`} />
 ```
 
-**Rules:**
-- Names must be unique per page (no two elements with the same `transition:name` on one page)
-- Both elements must exist on their respective pages
-- Works on any element (images, headings, cards, buttons)
-- The browser automatically animates size, position, and opacity between the two states
+Names must be unique per page. Works on any element.
 
-### `transition:animate` — Animation Type
+### `transition:animate`
 
-```astro
-<main transition:animate="slide">
-  <slot />
-</main>
-```
-
-Built-in animations:
 | Value | Effect |
 |---|---|
-| `initial` | Default: new page fades in, old fades out |
-| `fade` | Cross-fade between pages |
-| `slide` | Old slides out left, new slides in from right |
-| `none` | No animation (instant swap) |
+| `initial` | Default fade |
+| `fade` | Cross-fade |
+| `slide` | Old out left, new in right |
+| `none` | Instant |
 
-### Custom Animations
+Custom: `transition:animate={fade({ duration: '0.3s' })}`
 
-```astro
----
-import { fade } from 'astro:transitions'
----
-<main transition:animate={fade({ duration: '0.3s' })}>
-  <slot />
-</main>
-```
-
-Full custom animation:
-
+Full custom:
 ```astro
 ---
 import type { TransitionAnimationPair } from 'astro:transitions'
-
-const customSlide: TransitionAnimationPair = {
-  old: {
-    name: 'slideOut',
-    duration: '0.3s',
-    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    fillMode: 'forwards',
-  },
-  new: {
-    name: 'slideIn',
-    duration: '0.3s',
-    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    fillMode: 'backwards',
-  },
+const anim: TransitionAnimationPair = {
+  old: { name: 'slideOut', duration: '0.3s', easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', fillMode: 'forwards' },
+  new: { name: 'slideIn', duration: '0.3s', easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', fillMode: 'backwards' },
 }
 ---
-<main transition:animate={customSlide}>
-  <slot />
-</main>
-
-<style is:global>
-  @keyframes slideOut {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(-100px); }
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(100px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-</style>
+<main transition:animate={anim}><slot /></main>
 ```
 
-**Animation constraints** (same as project design rules):
-- Only animate `transform` and `opacity` — never layout properties
-- Custom `cubic-bezier()` easing — never `ease` or `linear`
-- `@media (prefers-reduced-motion: reduce)` to disable or minimize:
-
+Only animate `transform` and `opacity`. Always respect `prefers-reduced-motion`:
 ```css
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
     animation-duration: 0s !important;
   }
 }
 ```
 
-### `transition:persist` — Keep Elements Across Navigation
+### `transition:persist`
 
+Keep elements alive across navigation:
 ```astro
-<!-- Audio player that keeps playing across pages -->
 <audio-player transition:persist id="player" />
-
-<!-- Island that preserves its state -->
 <VideoPlayer client:load transition:persist />
 ```
 
-Use cases:
-- Media players that shouldn't restart
-- Forms with unsaved data
-- Chat widgets
-- Video embeds
-
-**Persisted elements must have the same `id` or `transition:name` on both pages.**
+Must have same `id` or `transition:name` on both pages.
 
 ## Step 3: Lifecycle Events
 
-View Transitions fire events you can hook into:
-
 ```astro
 <script>
-  document.addEventListener('astro:before-preparation', (event) => {
-    // Before the new page is fetched
-    // Use: show loading indicator
-  })
-
-  document.addEventListener('astro:after-preparation', (event) => {
-    // New page fetched, before swap
-    // Use: prepare the new DOM
-  })
-
-  document.addEventListener('astro:before-swap', (event) => {
-    // Just before the DOM swap
-    // Use: persist state, transfer data between pages
-  })
-
-  document.addEventListener('astro:after-swap', (event) => {
-    // DOM swapped, before animations play
-    // Use: reinitialize scripts, update analytics
-  })
-
-  document.addEventListener('astro:page-load', (event) => {
-    // Page fully loaded (including animations)
-    // Use: initialize page-specific JS
-    // ALSO fires on initial page load (not just transitions)
-  })
+  document.addEventListener('astro:before-preparation', () => { /* before fetch */ })
+  document.addEventListener('astro:after-swap', () => { /* DOM swapped, reinit scripts */ })
+  document.addEventListener('astro:page-load', () => { /* every navigation + initial load */ })
 </script>
 ```
 
-### Re-Initializing Scripts
+Scripts in Astro components run once on first load, NOT on subsequent navigations. Use `astro:page-load` for scripts that must run every page.
 
-With View Transitions, `<script>` tags in Astro components run once on first load but NOT on subsequent navigations. Use `astro:page-load` for scripts that need to run on every page:
+## Step 4: Islands + Transitions
 
-```astro
-<script>
-  document.addEventListener('astro:page-load', () => {
-    // This runs on every page navigation, including the first load
-    const el = document.querySelector('#interactive-thing')
-    if (el) initializeThing(el)
-  })
-</script>
-```
+Islands are **destroyed and recreated** on navigation by default.
 
-## Step 4: Islands + View Transitions
-
-### Island State During Navigation
-
-By default, islands are **destroyed and recreated** on each navigation. Their state resets.
-
-To preserve island state:
-```astro
-<!-- Option 1: transition:persist (keeps the entire island alive) -->
-<Counter client:load transition:persist />
-
-<!-- Option 2: External state (Nanostores / Signals persist at module level) -->
-<Cart client:load />  <!-- State in nanostores survives navigation -->
-```
-
-### Island Hydration After Navigation
-
-Islands hydrate correctly after View Transitions — Astro handles this. But if you're manually querying DOM in an island, use `astro:page-load`:
-
-```tsx
-import { useEffect } from 'preact/hooks'
-
-export function ScrollTracker() {
-  useEffect(() => {
-    const handler = () => { /* ... */ }
-    document.addEventListener('astro:page-load', handler)
-    return () => document.removeEventListener('astro:page-load', handler)
-  }, [])
-}
-```
+Preserve state:
+- `transition:persist` on the island
+- External state (Nanostores/Signals at module level) survives automatically
 
 ## Step 5: Accessibility
 
-View Transitions must not break the experience for assistive technology users:
+- Focus moves to `<main>` after navigation (Astro default, verify)
+- `<title>` change announces new page to screen readers
+- Honor `prefers-reduced-motion`
+- Skip-to-main link must work on every transition
 
-- **Focus management**: After navigation, focus should move to `<main>` or the page `<h1>`. Astro does this by default with View Transitions, but verify:
-  ```astro
-  <script>
-    document.addEventListener('astro:page-load', () => {
-      const main = document.querySelector('main')
-      if (main) main.focus()
-    })
-  </script>
-  ```
-- **Live region announcement**: Screen readers should announce the new page. The `<title>` change handles this in most readers.
-- **Reduced motion**: Always honor `prefers-reduced-motion` (see animation section above)
-- **Skip navigation**: The skip-to-main link should work on every page load
-
-## Step 6: Common Patterns
-
-### Back/Forward Navigation Direction
+## Common Patterns
 
 ```astro
----
-import { slide } from 'astro:transitions'
----
-<main transition:animate={slide()}>
-  <!-- Slides right on forward, left on back -->
-  <slot />
-</main>
-```
+<!-- Direction-aware slide -->
+<main transition:animate={slide()}><slot /></main>
 
-### Page-Specific Transitions
-
-```astro
----
-// Blog detail page — slide in, photo page — fade
-const animation = Astro.url.pathname.startsWith('/photos') ? 'fade' : 'slide'
----
-<main transition:animate={animation}>
-  <slot />
-</main>
-```
-
-### Persistent Navigation with Active State
-
-```astro
-<nav transition:persist>
-  <a href="/" class:list={[{ active: Astro.url.pathname === '/' }]}>Home</a>
-  <a href="/blog" class:list={[{ active: Astro.url.pathname.startsWith('/blog') }]}>Blog</a>
-</nav>
-
+<!-- Persistent nav with active state update -->
+<nav transition:persist>...</nav>
 <script>
   document.addEventListener('astro:after-swap', () => {
-    const links = document.querySelectorAll('nav a')
-    links.forEach(link => {
+    document.querySelectorAll('nav a').forEach(link => {
       const href = link.getAttribute('href')
       link.classList.toggle('active',
-        href === '/' ? location.pathname === '/' : location.pathname.startsWith(href!)
-      )
+        href === '/' ? location.pathname === '/' : location.pathname.startsWith(href!))
     })
   })
 </script>
-```
 
-### Opt-Out for Specific Links
-
-```astro
-<!-- Force full page reload (external links, download links) -->
-<a href="/api/download" data-astro-reload>Download PDF</a>
+<!-- Force full reload -->
+<a href="/api/download" data-astro-reload>Download</a>
 ```
 
 ## Self-Check
 
-- [ ] Using `<ClientRouter />` (not the removed `<ViewTransitions />`)
-- [ ] `transition:name` values are unique per page
-- [ ] `prefers-reduced-motion` respected (animations disabled or minimized)
-- [ ] Scripts re-initialize via `astro:page-load` (not inline `<script>` that runs once)
-- [ ] Islands with important state use `transition:persist` or external stores
-- [ ] Focus management works after navigation (focus moves to main content)
-- [ ] Skip navigation link works on every page transition
-- [ ] External/download links use `data-astro-reload`
+- [ ] Using `<ClientRouter />` (not `<ViewTransitions />`)
+- [ ] `transition:name` unique per page
+- [ ] `prefers-reduced-motion` respected
+- [ ] Scripts reinit via `astro:page-load`
+- [ ] Stateful islands use `transition:persist` or external stores
+- [ ] Focus management works after navigation
 - [ ] Custom animations only use `transform` and `opacity`
