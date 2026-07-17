@@ -187,6 +187,7 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | Skill                    | Triggers On                                         |
 | ------------------------ | --------------------------------------------------- |
 | `design-discovery`       | "pick fonts", "choose colors", "visual identity"    |
+| `token-economy`          | "be concise", "compress output", "minimize tokens"  |
 | `micro-animations`       | "add animations", "hover effects", "add polish"     |
 | `frontend-design`        | "build page", "create component", "design UI"       |
 | `code-review`            | "review code", "check my code", "audit code"        |
@@ -205,6 +206,7 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | `threat-detection`       | "threat model", "security review", "attack surface" |
 | `workflow-optimizer`     | "optimize workflow", "speed up build", "DX"         |
 | `merge-conflict`         | "merge conflict", "resolve conflict", "fix conflicts"|
+| `pr-review`              | "review PR", "review pull request", "wait for CI", "babysit PR"|
 | `frontend-react`         | "react component", "build in react", "react hook"   |
 | `frontend-preact`        | "preact component", "preact island", "preact signal" |
 | `frontend-astro`         | "astro page", "astro layout", "content collection"  |
@@ -227,6 +229,41 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | `preact-compat`         | "preact compat", "react library in preact", "alias"   |
 | `preact-signals-patterns`| "signals pattern", "computed signal", "signal store" |
 | `pagespeed-audit`        | "pagespeed", "lighthouse", "core web vitals"          |
+
+#### Agent Discipline (model-agnostic working method)
+
+A set of nine skills distilled from Claude Fable 5's working method, written to make **any**
+agent — Opus, Sonnet, Haiku, or a non-Claude model — work with the same discipline: gate the
+effort, classify the ask, prefer primary sources, act surgically, verify by observation, report
+outcome-first. They enforce it with mandatory one-line audit markers (`ASK:`, `SCOPE:`,
+`VERIFIED:`, `TWINS:`, `VERDICT:`, …) that force each check to actually happen and let a reviewer
+audit a transcript mechanically. A frontier model can drop the markers; the checks it cannot.
+
+Two ways to use them:
+
+- **`agent-discipline`** — the entire method in one self-contained skill. Drop it into any agent
+  (or reference it from a subagent definition) and it needs no companions. Start here.
+- **The eight phase skills** — the same content broken out so a specialized subagent loads only
+  the phase it needs (a reviewer loads `agent-judge`, a summarizer `agent-report`, and so on).
+
+| Skill               | Triggers On                                              |
+| ------------------- | -------------------------------------------------------- |
+| `agent-discipline`  | "work like fable", "be disciplined", "do this properly"  |
+| `agent-method`      | "full method", "careful agentic task", "agent method"    |
+| `agent-econ`        | "be concise", "token economy", "compress output"         |
+| `agent-intake`      | "classify this ask", "is this a question or a task"       |
+| `agent-evidence`    | "gather evidence", "investigate first", "check the source"|
+| `agent-act`         | "make the change", "one recommendation", "smallest change"|
+| `agent-verify`      | "verify this", "did it actually work", "run it"          |
+| `agent-report`      | "write the report", "outcome first", "final message"     |
+| `agent-judge`       | "judge this work", "is this report true", "audit the diff"|
+
+`agent-econ` (the token-economy register) is also duplicated as a standalone **`token-economy`**
+skill — decoupled from this method so any agent can switch it on purely to compress output and cut
+token usage, without loading the rest of the discipline. Same content, general-purpose framing.
+
+Provenance: adapted from [`fable-thinking-methods`](https://github.com/NickBevers/fable-thinking-methods)
+(the `fable-*` skills), renamed to describe function rather than the source model.
 
 ### Token Budget
 
@@ -298,7 +335,17 @@ Compared to loading all 744 lines on every interaction.
     ├── preact-compat/SKILL.md
     ├── preact-signals-patterns/SKILL.md
     ├── pagespeed-audit/SKILL.md
-    └── ... (55 total)
+    ├── agent-discipline/SKILL.md      #   Whole working method, self-contained
+    ├── agent-method/SKILL.md          #   The loop + audit-line contract (map)
+    ├── agent-econ/SKILL.md            #   Always-on token-economy register
+    ├── agent-intake/SKILL.md          #   Classify ask, gate effort, define done
+    ├── agent-evidence/SKILL.md        #   Primary sources, intent, surprises
+    ├── agent-act/SKILL.md             #   One recommendation, scope, auth gate
+    ├── agent-verify/SKILL.md          #   Observed verification, twin sweep
+    ├── agent-report/SKILL.md          #   Outcome-first, honest caveats
+    ├── agent-judge/SKILL.md           #   Adversarial review of finished work
+    ├── token-economy/SKILL.md         #   Standalone compression register (agent-econ, decoupled)
+    └── ... (68 total)
 ```
 
 ### What Goes Where
