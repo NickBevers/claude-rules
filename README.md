@@ -262,9 +262,6 @@ Two ways to use them:
 skill — decoupled from this method so any agent can switch it on purely to compress output and cut
 token usage, without loading the rest of the discipline. Same content, general-purpose framing.
 
-Provenance: adapted from [`fable-thinking-methods`](https://github.com/NickBevers/fable-thinking-methods)
-(the `fable-*` skills), renamed to describe function rather than the source model.
-
 ### Token Budget
 
 | Scenario                            | Lines Loaded                          | vs. Monolithic    |
