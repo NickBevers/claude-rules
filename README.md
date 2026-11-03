@@ -233,7 +233,6 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | `radix-to-baseui`        | Radix UI to Base UI migration, Base UI data attributes |
 | `project-planning-handoff` | new project or rebuild planning, multi-agent handoff |
 | `humanize-text`          | "humanize", "de-AI", "remove AI slop"                 |
-| `roast-me`               | `/roast-me` (animated ASCII rotisserie chicken)       |
 
 #### Accessibility (WCAG 2.2 AA by default)
 
@@ -381,7 +380,7 @@ Compared to loading all 744 lines on every interaction.
     ├── radix-to-baseui/               #   SKILL.md + references/
     ├── orchestrate/SKILL.md           #   Coordinator with subagents (Claude Code)
     ├── orchestrate-cross/SKILL.md     #   Coordinator across Claude and OpenAI models
-    └── ... (73 total)
+    └── ... (72 total)
 ```
 
 ### What Goes Where
