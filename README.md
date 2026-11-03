@@ -28,7 +28,7 @@ Running `init` is safe on existing projects — it merges and adds, never overwr
 
 - **`CLAUDE.md`** — if one already exists, the global rules are merged on top and your project-specific content is preserved below a `# --- Project Rules ---` marker. Re-running `init` updates the global section while keeping your project rules intact.
 - **`rules/`** — new rule files are added by name. Existing rules you've customized are kept as-is.
-- **`skills/`** — new skills are added by name. Existing skills are kept as-is.
+- **`skills/`** — new skills are added by name, with their whole folder (`references/`, `scripts/`, `assets/`). Existing skills are kept as-is.
 
 After init, add any project-specific configuration below the `# --- Project Rules ---` marker in `CLAUDE.md`, then commit the `rules/` and `skills/` directories alongside your code.
 
@@ -229,6 +229,39 @@ Proper Claude Code skills with `SKILL.md` + YAML frontmatter. Only loaded when i
 | `preact-compat`         | "preact compat", "react library in preact", "alias"   |
 | `preact-signals-patterns`| "signals pattern", "computed signal", "signal store" |
 | `pagespeed-audit`        | "pagespeed", "lighthouse", "core web vitals"          |
+| `code-consistency`       | "consistency check", "pattern check", "convention check" |
+| `radix-to-baseui`        | Radix UI to Base UI migration, Base UI data attributes |
+| `project-planning-handoff` | new project or rebuild planning, multi-agent handoff |
+| `humanize-text`          | "humanize", "de-AI", "remove AI slop"                 |
+| `roast-me`               | `/roast-me` (animated ASCII rotisserie chicken)       |
+
+#### Accessibility (WCAG 2.2 AA by default)
+
+`a11y-hawk` is the router. It runs on every UI change and hands off to the checklist that fits the concern. AAA is opt-in only.
+
+| Skill                 | Triggers On                                              |
+| --------------------- | -------------------------------------------------------- |
+| `a11y-hawk`           | "accessibility", "a11y", "wcag", any UI change           |
+| `eaa-perceivable`     | "alt text", "captions", "contrast", "reflow"             |
+| `eaa-operable`        | "keyboard accessibility", "focus", "target size"         |
+| `eaa-understandable`  | "error message", "form validation", "autocomplete"       |
+| `eaa-robust`          | "semantic html", "name role value", "status message"     |
+| `aria-authoring`      | "aria", "role=", "widget pattern", "live region"         |
+| `ui-contrast-review`  | measured contrast audit of a running UI in a browser     |
+| `eaa-products`        | "checkout", "banking app", "e-book accessibility"        |
+| `eaa-statement`       | "accessibility statement", "EAA statement"               |
+| `uk-accessibility`    | UK PSBAR, Equality Act, gov.uk patterns                  |
+| `us-ada`              | ADA Title II and Title III websites                      |
+| `us-section-508`      | US federal agencies and contractors                      |
+| `us-cvaa`             | "CVAA", "closed captions", "real-time text"              |
+| `a11y-aaa`            | "AAA", "exceed AA" (opt-in only)                         |
+
+#### Orchestration
+
+| Skill               | Triggers On                                                |
+| ------------------- | ---------------------------------------------------------- |
+| `orchestrate`       | `/orchestrate <task>`, "use subagents", "dispatch workers" (Claude Code only) |
+| `orchestrate-cross` | `/orchestrate-cross <task>` or `$orchestrate-cross <task>`, "use claude and codex", "cross-model review" |
 
 #### Agent Discipline (model-agnostic working method)
 
@@ -342,7 +375,13 @@ Compared to loading all 744 lines on every interaction.
     ├── agent-report/SKILL.md          #   Outcome-first, honest caveats
     ├── agent-judge/SKILL.md           #   Adversarial review of finished work
     ├── token-economy/SKILL.md         #   Standalone compression register (agent-econ, decoupled)
-    └── ... (68 total)
+    ├── a11y-hawk/SKILL.md             #   Accessibility router (WCAG 2.2 AA)
+    ├── ui-contrast-review/            #   SKILL.md + references/, scripts/, assets/
+    ├── project-planning-handoff/      #   SKILL.md + references/
+    ├── radix-to-baseui/               #   SKILL.md + references/
+    ├── orchestrate/SKILL.md           #   Coordinator with subagents (Claude Code)
+    ├── orchestrate-cross/SKILL.md     #   Coordinator across Claude and OpenAI models
+    └── ... (73 total)
 ```
 
 ### What Goes Where

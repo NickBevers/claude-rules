@@ -1,7 +1,7 @@
 ---
 name: pagespeed-audit
 description: Run PageSpeed Insights and Lighthouse audits to measure Core Web Vitals, accessibility, SEO, and best practices. Triggers on "pagespeed", "lighthouse", "core web vitals", "page speed", "performance score", "lighthouse audit", "psi check".
-allowed-tools: Agent, Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Bash
+allowed-tools: Agent, Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Bash, AskUserQuestion
 ---
 
 # PageSpeed Audit — Automated Performance Validation
@@ -183,6 +183,36 @@ jobs:
 2. **[Issue]** → [fix]
 ```
 
+## Step 7: Write the HTML Report
+
+After running the audit, always write a styled HTML report file.
+
+**Ask for the output directory first** (unless already told):
+
+> "Where should I save the audit report? For example: `audits/`"
+
+If the user says nothing or confirms the default, use `audits/`. Create the directory if it does not exist.
+
+**File name:** `performance-YYYY-MM-DD-HHMMSS.html` (current date and time, 24-hour, e.g. `performance-2026-09-25-143022.html`).
+
+**Report format:** a self-contained HTML file styled like the audit template below. It must include:
+- Lighthouse scores (mobile + desktop) as large score tiles
+- CWV table (LCP, CLS, TBT, FCP, Speed Index, TTFB) with pill badges (GOOD / WATCH / POOR)
+- Findings table with severity pills (MEDIUM / LOW / INFO), category, file path, line, and description
+- "What is already solid" section for passing checks
+- Numbered recommended actions with effort estimates
+- Footer with branch/commit, date, and tool version
+
+If the output directory already holds an earlier `performance-*.html` report, read the most recent one first and reuse its design so reports stay consistent.
+
+If there is no earlier report, use this inline palette and structure:
+- Tokens: `--bg #f7f7f5`, `--surface #fff`, `--border #e4e4e0`, `--text #1a1a18`, `--muted #6b6b65`, `--good #1a6b3c / bg #e8f5ee`, `--warn #7a4f00 / bg #fff4e0`, `--neutral #2a4a7f / bg #eaf0fb`, `--accent #1a3a6b`
+- Dark mode: swap to near-black bg, match contrast
+- Score tiles in a `repeat(auto-fit, minmax(130px, 1fr))` grid
+- Metrics in a `border-collapse` table with monospace metric names
+- Findings in a `border-collapse` table with `border-left: 3px solid` severity stripe
+- Actions as a `counter-reset` ordered list with circular number badges
+
 ## Self-Check
 
 - [ ] Tested both mobile AND desktop
@@ -192,3 +222,4 @@ jobs:
 - [ ] LCP element identified and optimized
 - [ ] CLS sources identified and fixed
 - [ ] All scores ≥90
+- [ ] HTML report written to the specified directory

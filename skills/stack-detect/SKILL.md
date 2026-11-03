@@ -2,7 +2,7 @@
 name: stack-detect
 description: Detect project technologies and write stack profile. Auto-runs on first interaction with any project. Triggers on "detect stack", "what stack", "scan project", "stack-detect".
 allowed-tools: Read, Glob, Grep, Write, Bash
-user-invokable: true
+user-invocable: true
 ---
 
 # Stack Detect — Project Technology Scanner
