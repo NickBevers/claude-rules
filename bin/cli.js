@@ -253,16 +253,16 @@ function syncClaude(projectDir, { force = false } = {}) {
     log("  -> rules/ (up to date)");
   }
 
-  // Copy skills/ (add new skills by name, never overwrite existing)
+  // Copy skills/ (add new skills by name, never overwrite existing).
+  // Copy the whole skill folder so references/, scripts/ and assets/ ship too.
   let skillAdded = 0;
   let skillSkipped = 0;
   for (const dir of readdirSync(pkgSkills, { withFileTypes: true }).filter(d => d.isDirectory())) {
+    const srcDir = join(pkgSkills, dir.name);
     const destDir = join(skillsDest, dir.name);
-    const skillFile = join(pkgSkills, dir.name, "SKILL.md");
-    if (existsSync(skillFile)) {
+    if (existsSync(join(srcDir, "SKILL.md"))) {
       if (force || !existsSync(join(destDir, "SKILL.md"))) {
-        mkdirSync(destDir, { recursive: true });
-        copyFileSync(skillFile, join(destDir, "SKILL.md"));
+        copyDirRecursive(srcDir, destDir);
         skillAdded++;
       } else {
         skillSkipped++;

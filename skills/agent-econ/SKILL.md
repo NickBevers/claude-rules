@@ -2,7 +2,7 @@
 name: agent-econ
 description: The golden standard, always-on token-economy register — maximum compression of internal working notes (telegraphic "caveman" register), minimal tool-output echo, read-narrow input discipline, and compact final answers. Load this alongside every other skill, for every task, in every phase; the other agent-* skills define WHAT to do, this one defines how few tokens to do it in. Triggers on "be concise", "token economy", "compress output", "spend tokens carefully", "caveman register".
 allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent, Skill
-user-invokable: true
+user-invocable: true
 ---
 
 # Agent econ — spend tokens like money
